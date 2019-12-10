@@ -1,11 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types";
-import styled, { css } from "styled-components";
+import styled, { css, withTheme } from "styled-components";
 import { Icons } from "../icons";
 import Text from "../text";
+import { Base } from "../../themes/index";
 
 const disableColor = "#A3A9AE";
-const hoverColor = disableColor;
 
 const Label = styled.label`
   display: flex;
@@ -32,11 +32,20 @@ const Label = styled.label`
           &:hover {
             svg {
               rect:first-child {
-                stroke: ${hoverColor};
+                stroke: ${props => props.theme.hoverColor};
               }
             }
           }
         `}
+
+  svg {
+    rect {
+      fill: ${props => props.theme.backgroundColorCheckBox};
+    }
+    path {
+      fill: ${props => props.theme.colorCheckBox};
+    }
+  }
 `;
 
 const HiddenInput = styled.input`
@@ -51,8 +60,8 @@ const CheckboxIcon = ({ isChecked, isDisabled, isIndeterminate }) => {
   const iconName = isIndeterminate
     ? "CheckboxIndeterminateIcon"
     : isChecked
-      ? "CheckboxCheckedIcon"
-      : "CheckboxIcon";
+    ? "CheckboxCheckedIcon"
+    : "CheckboxIcon";
 
   let newProps = {
     size: "medium",
@@ -105,11 +114,25 @@ class Checkbox extends React.Component {
 
   render() {
     //console.log("Checkbox render");
-    const { isDisabled, id, className, label, style, value } = this.props;
+    const {
+      isDisabled,
+      id,
+      className,
+      label,
+      style,
+      value,
+      theme
+    } = this.props;
     const colorProps = isDisabled ? { color: disableColor } : {};
 
     return (
-      <Label id={id} style={style} isDisabled={isDisabled} className={className}>
+      <Label
+        id={id}
+        style={style}
+        isDisabled={isDisabled}
+        className={className}
+        theme={theme}
+      >
         <HiddenInput
           type="checkbox"
           checked={this.state.checked}
@@ -120,10 +143,7 @@ class Checkbox extends React.Component {
         />
         <CheckboxIcon {...this.props} />
         {this.props.label && (
-          <Text
-            as="span"
-            {...colorProps}
-          >
+          <Text as="span" {...colorProps}>
             {label}
           </Text>
         )}
@@ -144,11 +164,13 @@ Checkbox.propTypes = {
 
   onChange: PropTypes.func,
   className: PropTypes.string,
-  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+  theme: PropTypes.object
 };
 
 Checkbox.defaultProps = {
-  isChecked: false
+  isChecked: false,
+  theme: Base
 };
 
-export default Checkbox;
+export default withTheme(Checkbox);

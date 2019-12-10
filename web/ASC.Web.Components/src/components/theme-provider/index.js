@@ -25,7 +25,7 @@ class ThemeProvider extends Component {
     const { children } = this.props;
     return (
       <Provider theme={theme}>
-        <button onClick={this.onClick}>Switch theme</button>
+        {/*<button onClick={this.onClick}>Switch theme</button>*/}
         {children}
       </Provider>
     );
@@ -33,7 +33,8 @@ class ThemeProvider extends Component {
 }
 
 ThemeProvider.propTypes = {
-  children: PropTypes.any
+  children: PropTypes.any,
+  theme: PropTypes.object
 };
 
 export default ThemeProvider;

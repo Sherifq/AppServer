@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import styled, { css, withTheme } from "styled-components";
 import { Icons } from "../icons";
 import Text from "../text";
+import { Base } from "../../themes/index";
 
 const ToggleButtonContainer = styled.label`
   position: relative;
@@ -149,8 +150,13 @@ ToggleButton.propTypes = {
   label: PropTypes.string,
   id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   className: PropTypes.string,
-  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
+  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+  theme: PropTypes.object
 };
+
+ToggleButton.defaultProps = {
+  theme: Base
+}
 
 ToggleIcon.propTypes = {
   isChecked: PropTypes.bool

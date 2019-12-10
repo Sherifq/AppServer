@@ -21,10 +21,32 @@ const Label = styled.label`
     margin-right: 8px;
   }
 
+  svg {
+    rect {
+      fill: ${props => props.theme.cBoxColor};
+      stroke: ${props => props.theme.cBoxBorder};
+      
+    }
+    path {
+      fill: ${props => props.theme.cBoxArrow};
+    }
+  }
+
   ${props =>
     props.isDisabled
       ? css`
           cursor: not-allowed;
+
+          svg {
+            rect {
+              stroke: ${props.theme.disablecBoxBorder};
+              fill: ${props.theme.disablecBoxBorder}
+            }
+            path {
+              fill: ${props.theme.disablecBoxArrow};
+            }
+
+          }
         `
       : css`
           cursor: pointer;
@@ -32,20 +54,11 @@ const Label = styled.label`
           &:hover {
             svg {
               rect:first-child {
-                stroke: ${props => props.theme.hoverColor};
+                stroke: ${props => props.theme.cBoxHoverBordrer};
               }
             }
           }
         `}
-
-  svg {
-    rect {
-      fill: ${props => props.theme.backgroundColorCheckBox};
-    }
-    path {
-      fill: ${props => props.theme.colorCheckBox};
-    }
-  }
 `;
 
 const HiddenInput = styled.input`

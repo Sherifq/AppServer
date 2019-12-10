@@ -26,47 +26,38 @@ const ToggleButtonContainer = styled.label`
           cursor: pointer;
         `}
 
-    ${props =>
-      props.checked && !props.isDisabled
-        ? css`
-            svg {
-              rect {
-                fill: ${props.theme.backgroundColorON};
-              }
-            }
-          `
-        : props.checked && props.isDisabled
-        ? css`
-            svg {
-              rect {
-                fill: ${props.theme.backgroundColorONDisable};
-              }
-            }
-          `
-        : props.isDisabled
-        ? css`
-            svg {
-              rect {
-                fill: ${props.theme.backgroundColorOFF};
-              }
-            }
-          `
-        : css`
-            svg {
-              rect {
-                fill: ${props.theme.backgroundColorOFFDisable};
-              }
-            }
-          `}
-    ${props =>
-      props.isDisabled
-        ? css`
+  ${props =>
+    props.checked && !props.isDisabled
+      ? css`
+          svg {
             rect {
-              fill: #eceff1;
+              fill: ${props.theme.backgroundColorON};
             }
-          `
-        : ""}
-  
+          }
+        `
+      : props.checked && props.isDisabled
+      ? css`
+          svg {
+            rect {
+              fill: ${props.theme.backgroundColorONDisable};
+            }
+          }
+        `
+      : !props.isDisabled
+      ? css`
+          svg {
+            rect {
+              fill: ${props.theme.backgroundColorOFF};
+            }
+          }
+        `
+      : css`
+          svg {
+            rect {
+              fill: ${props.theme.backgroundColorOFFDisable};
+            }
+          }
+        `}
 
   .toggleText {
     margin-left: 8px;
@@ -156,7 +147,7 @@ ToggleButton.propTypes = {
 
 ToggleButton.defaultProps = {
   theme: Base
-}
+};
 
 ToggleIcon.propTypes = {
   isChecked: PropTypes.bool

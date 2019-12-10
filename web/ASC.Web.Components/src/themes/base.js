@@ -7,9 +7,12 @@ const Base = {
   color: "#333",
   disableColor: "#A3A9AE",
 
-  hoverColor: "#A3A9AE",
-  backgroundColorCheckBox: "#fff",
-  colorCheckBox: "#333"
+  cBoxColor: "#fff",
+  cBoxBorder: "#D0D5DA",
+  disablecBoxBorder: "#ECEEF1",
+  cBoxHoverBordrer: "#A3A9AE",
+  cBoxArrow: "#333",
+  disablecBoxArrow: "#D0D5DA"
 };
 
 export default Base;

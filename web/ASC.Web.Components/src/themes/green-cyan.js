@@ -7,9 +7,13 @@ const GreenCyan = {
     color: "#333",
     disableColor: "#A3A9AE",
 
-    hoverColor: "#68A781",
-    backgroundColorCheckBox: "#7ACE9B",
-    colorCheckBox: "#fff"
+
+    cBoxColor: "#7ACE9B",
+    cBoxBorder: "#7ACE9B",
+    disablecBoxBorder: "#BCE7CD",
+    cBoxHoverBordrer: "#68A781",
+    cBoxArrow: "#fff",
+    disablecBoxArrow: "#fff"
   };
   
   export default GreenCyan;

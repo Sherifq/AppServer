@@ -1,11 +1,11 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import styled, { css } from "styled-components";
+import styled, { css, withTheme } from "styled-components";
 import { Icons } from "../icons";
 import Text from "../text";
 
 const ToggleButtonContainer = styled.label`
-  position: absolute;
+  position: relative;
   -webkit-appearance: none;
   display: flex;
   align-items: center;
@@ -24,16 +24,48 @@ const ToggleButtonContainer = styled.label`
       : css`
           cursor: pointer;
         `}
-  svg {
+
     ${props =>
-    props.isDisabled
-      ? css`
+      props.checked && !props.isDisabled
+        ? css`
+            svg {
+              rect {
+                fill: ${props.theme.backgroundColorON};
+              }
+            }
+          `
+        : props.checked && props.isDisabled
+        ? css`
+            svg {
+              rect {
+                fill: ${props.theme.backgroundColorONDisable};
+              }
+            }
+          `
+        : props.isDisabled
+        ? css`
+            svg {
+              rect {
+                fill: ${props.theme.backgroundColorOFF};
+              }
+            }
+          `
+        : css`
+            svg {
+              rect {
+                fill: ${props.theme.backgroundColorOFFDisable};
+              }
+            }
+          `}
+    ${props =>
+      props.isDisabled
+        ? css`
             rect {
               fill: #eceff1;
             }
           `
-      : ""}
-  }
+        : ""}
+  
 
   .toggleText {
     margin-left: 8px;
@@ -55,6 +87,7 @@ const ToggleIcon = ({ isChecked }) => {
 class ToggleButton extends Component {
   constructor(props) {
     super(props);
+
     this.state = {
       checked: props.isChecked
     };
@@ -67,8 +100,19 @@ class ToggleButton extends Component {
   }
 
   render() {
-    const { isDisabled, label, onChange, id, className, style } = this.props;
-    const colorProps = isDisabled ? { color: "#A3A9AE" } : {};
+    const {
+      isDisabled,
+      label,
+      onChange,
+      id,
+      className,
+      style,
+      theme
+    } = this.props;
+    const { checked } = this.state;
+    const colorProps = isDisabled
+      ? { color: theme.disableColor }
+      : { color: theme.color };
 
     //console.log("ToggleButton render");
 
@@ -78,14 +122,16 @@ class ToggleButton extends Component {
         className={className}
         style={style}
         isDisabled={isDisabled}
+        checked={checked}
+        theme={theme}
       >
         <HiddenInput
           type="checkbox"
-          checked={this.state.checked}
+          checked={checked}
           disabled={isDisabled}
           onChange={onChange}
         />
-        <ToggleIcon isChecked={this.state.checked} />
+        <ToggleIcon isChecked={checked} />
         {label && (
           <Text className="toggleText" as="span" {...colorProps}>
             {label}
@@ -108,6 +154,6 @@ ToggleButton.propTypes = {
 
 ToggleIcon.propTypes = {
   isChecked: PropTypes.bool
-}
+};
 
-export default ToggleButton;
+export default withTheme(ToggleButton);

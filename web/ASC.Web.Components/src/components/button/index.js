@@ -18,8 +18,11 @@ const activeCss = css`
 `;
 
 const hoverCss = css`
-  background-color: ${props => (props.primary ? '#3DB8EC' : '#FFFFFF')};
-  color: ${props => (props.primary ? '#ffffff' : '#333333')};
+  /*background-color: ${props => (props.primary ? '#3DB8EC' : '#FFFFFF')};*/
+  background-color: ${props => (props.primary ? props.theme.buttonBackgroundPrimaryHover : props.theme.backgroundColor)};
+  /*color: ${props => (props.primary ? '#ffffff' : '#333333')};*/
+  color: ${props => (props.primary ? props.theme.buttonColorPrimaryHover : props.theme.color)};
+  /*color: ${props => props.theme.color};*/
 
   ${props =>
     !props.primary &&
@@ -71,12 +74,19 @@ const StyledButton = styled(ButtonWrapper).attrs((props) => ({
     (props.size === 'base' && '12px')
   };
 
-  color: ${props => (props.primary && '#FFFFFF') || (!props.isDisabled ? '#333333' : '#ECEEF1')};
+  /*color: ${props => (props.primary && '#FFFFFF') || (!props.isDisabled ? '#333333' : '#ECEEF1')};*/
+  color: ${props => (props.primary && '#FFFFFF') || (!props.isDisabled ?  props.theme.color : props.theme.colorDisable)};
 
-  background-color: ${props => 
+  /*background-color: ${props => 
     (!props.isDisabled || props.isLoading 
       ? (props.primary ? '#2DA7DB' : '#FFFFFF') 
       : (props.primary ? '#A6DCF2' : '#FFFFFF'))
+  };*/
+
+  background-color: ${props => 
+    (!props.isDisabled || props.isLoading 
+      ? (props.primary ? '#2DA7DB' : props.theme.backgroundColor) 
+      : (props.primary ? '#A6DCF2' : props.theme.backgroundColor))
   };
 
   ${props => props.scale && `width: 100%;`}
@@ -145,7 +155,8 @@ const StyledButton = styled(ButtonWrapper).attrs((props) => ({
     css`
       border: 1px solid;
       box-sizing: border-box;
-      border-color: ${props => (!props.isDisabled && !props.isLoading) ? '#D0D5DA' : '#ECEEF1'};
+      /*border-color: ${props => (!props.isDisabled && !props.isLoading) ? '#D0D5DA' : '#ECEEF1'};*/
+      border-color: ${props => (!props.isDisabled && !props.isLoading) ? props.theme.buttonBorderColor : props.theme.buttonBorderColorDisable};
     `}
 
   ${props => (!props.isDisabled && !props.isLoading) && (props.isHovered ? hoverCss : css`

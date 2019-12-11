@@ -25,12 +25,13 @@ const Label = styled.label`
     rect {
       fill: ${props => props.theme.cBoxColor};
       stroke: ${props => props.theme.cBoxBorder};
-      
     }
     path {
       fill: ${props => props.theme.cBoxArrow};
     }
   }
+
+
 
   ${props =>
     props.isDisabled
@@ -40,12 +41,11 @@ const Label = styled.label`
           svg {
             rect {
               stroke: ${props.theme.disablecBoxBorder};
-              fill: ${props.theme.disablecBoxBorder}
+              fill: ${props.theme.disablecBoxBorder};
             }
             path {
               fill: ${props.theme.disablecBoxArrow};
             }
-
           }
         `
       : css`
@@ -59,6 +59,21 @@ const Label = styled.label`
             }
           }
         `}
+        ${props =>
+    props.isIndeterminate
+      ? css`
+          svg {
+            rect:first-child {
+              fill: ${props.theme.cBoxColor};
+              /*stroke: ${props.theme.cBoxColor};*/
+            }
+            rect:last-child {
+              fill: ${props.theme.cBoxArrow};
+              stroke: ${props.theme.cBoxColor};
+            }
+          }
+        `
+      : ""}
 `;
 
 const HiddenInput = styled.input`
@@ -83,11 +98,11 @@ const CheckboxIcon = ({ isChecked, isDisabled, isIndeterminate }) => {
 
   if (isDisabled) {
     newProps.isfill = true;
-    newProps.color = "#F8F9F9";
+    //newProps.color = "#F8F9F9";
 
     if (isIndeterminate || isChecked) {
       newProps.isStroke = true;
-      newProps.stroke = "#ECEEF1";
+      //newProps.stroke = "#ECEEF1";
     }
   }
 
@@ -134,7 +149,8 @@ class Checkbox extends React.Component {
       label,
       style,
       value,
-      theme
+      theme,
+      isIndeterminate
     } = this.props;
     const colorProps = isDisabled ? { color: disableColor } : {};
 
@@ -144,6 +160,7 @@ class Checkbox extends React.Component {
         style={style}
         isDisabled={isDisabled}
         className={className}
+        isIndeterminate={isIndeterminate}
         theme={theme}
       >
         <HiddenInput

@@ -26,14 +26,14 @@ storiesOf("Components|ThemeComponents", module)
                 <ThemeProvider theme={Base}>
                   <h4>Base:</h4>
                   <ToggleButton
-                    label="text"
+                    label="toggle-button"
                     onChange={event => toggle(event.target.value)}
                     isChecked={value}
                   />
                   <br />
                   <h4>Disable:</h4>
                   <ToggleButton
-                    label="text"
+                    label="toggle-button"
                     onChange={event => toggle(event.target.value)}
                     isChecked={value}
                     isDisabled={true}
@@ -44,9 +44,19 @@ storiesOf("Components|ThemeComponents", module)
                     id="base_theme"
                     name="name"
                     value="value"
-                    label="label"
+                    label="checkBox"
                     isChecked={value}
                     isIndeterminate={false}
+                    isDisabled={false}
+                    onChange={e => toggle(e.target.value)}
+                  />
+                  <Checkbox
+                    id="base_theme"
+                    name="name"
+                    value="value"
+                    label="checkBox"
+                    isChecked={value}
+                    isIndeterminate={true}
                     isDisabled={false}
                     onChange={e => toggle(e.target.value)}
                   />
@@ -56,7 +66,7 @@ storiesOf("Components|ThemeComponents", module)
                     id="base_theme"
                     name="name"
                     value="value"
-                    label="label"
+                    label="checkBox"
                     isChecked={value}
                     isIndeterminate={false}
                     isDisabled={true}
@@ -70,7 +80,7 @@ storiesOf("Components|ThemeComponents", module)
                 <h4>Base:</h4>
                 <ToggleButton
                   theme={GreenCyan}
-                  label="text"
+                  label="toggle-button"
                   onChange={event => toggle(event.target.value)}
                   isChecked={value}
                 />
@@ -78,7 +88,7 @@ storiesOf("Components|ThemeComponents", module)
                 <h4>Disable:</h4>
                 <ToggleButton
                   theme={GreenCyan}
-                  label="text"
+                  label="toggle-button"
                   onChange={event => toggle(event.target.value)}
                   isChecked={value}
                   isDisabled={true}
@@ -90,9 +100,20 @@ storiesOf("Components|ThemeComponents", module)
                   id="green-cyan_theme"
                   name="name2"
                   value="value2"
-                  label="label2"
+                  label="checkBox"
                   isChecked={value}
                   isIndeterminate={false}
+                  isDisabled={false}
+                  onChange={e => toggle(e.target.value)}
+                />
+                <Checkbox
+                  theme={GreenCyan}
+                  id="green-cyan_theme"
+                  name="name2"
+                  value="value2"
+                  label="checkBox"
+                  isChecked={value}
+                  isIndeterminate={true}
                   isDisabled={false}
                   onChange={e => toggle(e.target.value)}
                 />
@@ -103,7 +124,7 @@ storiesOf("Components|ThemeComponents", module)
                   id="green-cyan_theme"
                   name="name2"
                   value="value2"
-                  label="label2"
+                  label="checkBox"
                   isChecked={value}
                   isIndeterminate={false}
                   isDisabled={true}

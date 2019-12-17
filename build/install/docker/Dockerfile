@@ -19,8 +19,6 @@ RUN apt-get -y update && \
     apt-get install -yq sudo locales && \
     addgroup --system --gid 107 onlyoffice && \
     adduser -uid 104 --quiet --home /var/www/onlyoffice --system --gid 107 onlyoffice && \
-    addgroup --system --gid 104 elasticsearch && \
-    adduser -uid 103 --quiet --home /nonexistent --system --gid 104 elasticsearch && \
     locale-gen en_US.UTF-8 && \
     apt-get -y update && \
     apt-get install -yq software-properties-common wget curl cron rsyslog && \
@@ -29,13 +27,10 @@ RUN apt-get -y update && \
     echo "deb http://nginx.org/packages/mainline/ubuntu/ bionic nginx" >> /etc/apt/sources.list.d/nginx.list && \
     echo "deb-src http://nginx.org/packages/mainline/ubuntu/ bionic nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get install -yq openjdk-8-jre-headless && \
-    wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - && \
     apt-get install -yq apt-transport-https && \
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && \
     echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official.list && \
-    echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-6.x.list && \
     apt-get -y update && \
-    apt-get install -yq elasticsearch=6.5.0 && \
     add-apt-repository -y ppa:certbot/certbot && \
     curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
     apt-get install -y nodejs && \
@@ -46,34 +41,31 @@ RUN apt-get -y update && \
     apt-get -y update && \
     apt-get install -yq nginx && \
     cd ~ && \
-    wget http://www-us.apache.org/dist/kafka/2.2.1/kafka_2.12-2.2.1.tgz && \
-    tar xzf kafka_2.12-2.2.1.tgz && \
-    rm kafka_2.12-2.2.1.tgz && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     apt-get install -yq libgdiplus \
                         python-certbot-nginx \
                         htop \
                         nano \
+                        vim \
                         dnsutils \
                         python3-pip \
-                        multiarch-support \ 
+                        multiarch-support \
                         iproute2 \
                         ffmpeg \
-                        jq \ 
-                        git \ 
+                        jq \
+                        git \
                         yarn \
                         dotnet-sdk-3.1 \
                         supervisor \
-                        mysql-client \
-                        mysql-server
+                        mysql-client
 
-RUN git clone https://github.com/ONLYOFFICE/AppServer.git /app/onlyoffice/src/
+RUN git clone --single-branch --branch docker4serv https://github.com/Sherifq/AppServer.git /app/onlyoffice/src/
 
 RUN cd /app/onlyoffice/src/ && \
     yarn install --cwd web/ASC.Web.Components --frozen-lockfile > build/ASC.Web.Components.log && \
     npm run build --prefix web/ASC.Web.Components && \
     yarn pack --cwd web/ASC.Web.Components
-	
+
 RUN cd /app/onlyoffice/src/ && \
     component=$(ls web/ASC.Web.Components/asc-web-components-v1.*.tgz) && \
 	yarn remove asc-web-components --cwd web/ASC.Web.Common --peer && \
@@ -114,6 +106,7 @@ RUN cd /app/onlyoffice/src/ && \
 RUN cd /app/onlyoffice/src/ && \
     rm -f /etc/nginx/conf.d/* && \
     cp -rf config/nginx/onlyoffice*.conf /etc/nginx/conf.d/ && \
+    cp -rf config/nginx/includes /etc/nginx/ && \
     mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
     sed -e 's/#//' -i /etc/nginx/conf.d/onlyoffice.conf && \
     cd products/ASC.People/Server && \
@@ -131,26 +124,9 @@ RUN cd /app/onlyoffice/src/ && \
     cd common/services/ASC.Studio.Notify && \
     dotnet -d publish -o /var/www/services/studio.notify
 
-COPY config/mysql/conf.d/mysql.cnf /etc/mysql/conf.d/mysql.cnf
 COPY config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN sed -i 's/172.18.0.5/localhost/' /app/onlyoffice/config/appsettings.test.json
-
-RUN mkdir -p /var/mysqld/ && \
-    chown -R mysql:mysql /var/lib/mysql /var/run/mysqld /var/mysqld/ && \
-    service mysql start && \
-    mysql -e "CREATE DATABASE IF NOT EXISTS onlyoffice CHARACTER SET utf8 COLLATE 'utf8_general_ci'" && \
-    mysql -D "onlyoffice" < /app/onlyoffice/src/sql/app.sql && \
-    mysql -D "onlyoffice" < /app/onlyoffice/src/sql/app.data.sql && \
-    mysql -D "onlyoffice" -e 'CREATE USER IF NOT EXISTS "onlyoffice_user"@"localhost" IDENTIFIED WITH mysql_native_password BY "onlyoffice_pass";' && \
-    mysql -D "onlyoffice" -e 'GRANT ALL PRIVILEGES ON *.* TO 'onlyoffice_user'@'localhost' IDENTIFIED BY "onlyoffice_pass";' && \
-    mysql -D "onlyoffice" -e 'UPDATE core_user SET email = "paul.bannov@gmail.com";' && \
-    mysql -D "onlyoffice" -e 'UPDATE core_usersecurity SET pwdhash = "vLFfghR5tNV3K9DKhmwArV+SbjWAcgZZzIDTnJ0JgCo=", pwdhashsha512 = "USubvPlB+ogq0Q1trcSupg==";' && \
-    service mysql stop
-
 RUN rm -rf /var/lib/apt/lists/*
-
-VOLUME /var/lib/mysql
 
 EXPOSE 80 443 8092 8081
 

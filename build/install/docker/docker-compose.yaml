@@ -33,7 +33,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
-      KAFKA_ZOOKEEPER_CONNECT: "zoo:2181"
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_BROKER_ID: 1
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -83,25 +83,31 @@ services:
     - mysql_data:/var/lib/mysql
     - mysql_log:/var/log/mysql
 
-      #  appserver:
-      #    image: monoappserver
-      #    container_name: monoappserver
-      #    restart: always
-      #    port:
-      #    - 8092:8092
-      #    networks:
-      #    - onlyoffice
-      #    environment:
-      #      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      #      MYSQL_USER: ${MYSQL_USER}
-      #      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  appserver:
+    image: monoappserver
+    container_name: monoappserver
+    restart: always
+    ports:
+    - 8092:8092
+    networks:
+    - onlyoffice
+      #command: sed -i 's/localhost/mysql/' /app/onlyoffice/config/appsettings.test.json
+      #command: sed -i 's/localhost/kafka/' /app/onlyoffice/config/kafka.test.json
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
+      ZOO_HOST: zookeeper
+      ES_HOST: elasticsearch
       #    volumes:
-
-
 
 networks:
   onlyoffice:
     driver: 'bridge'
+
 volumes:
   mysql_data:
   mysql_log:

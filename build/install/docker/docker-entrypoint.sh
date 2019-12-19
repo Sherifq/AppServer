@@ -3,7 +3,11 @@
 MYSQLIP=`getent hosts mysql | awk '{ print $1 }'`
 KAFKAIP=`getent hosts kafka | awk '{ print $1 }'`
 
-sed -i "s/localhost/${MYSQLIP}/" /app/onlyoffice/config/appsettings.test.json
+tmp=$(mktemp)
+
+jq ".ConnectionStrings.default.connectionString=\"Server=${MYSQLIP};Port=3306;Database=${MYSQL_DATABASE};User ID=${MYSQL_USER};Password=${MYSQL_PASSWORD};Pooling=true;Character Set=utf8;AutoEnlist=false;SSL Mode=Required\"" /app/onlyoffice/config/appsettings.test.json > "$tmp" && mv "$tmp" /app/onlyoffice/config/appsettings.test.json
+
+
 sed -i "s/localhost/${KAFKAIP}/" /app/onlyoffice/config/kafka.test.json
 
 /usr/bin/supervisord --

@@ -128,6 +128,8 @@ COPY config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 COPY ./docker-entrypoint.sh /
 
+RUN chmod +x /docker-entrypoint.sh
+
 RUN rm -rf /var/lib/apt/lists/*
 
 EXPOSE 80 443 8092 8081

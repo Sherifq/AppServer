@@ -43,6 +43,7 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.5.0    # https://hub.docker.com/_/elasticsearch
     container_name: elasticsearch
+    hostname: elasticsearch
     networks:
     - onlyoffice
     environment:
@@ -67,6 +68,7 @@ services:
   mysql:
     image: mysql:8.0.18       # https://hub.docker.com/_/mysql
     container_name: mysql
+    hostname: mysql
     restart: always
     expose:
     - "3306"
@@ -86,7 +88,13 @@ services:
   appserver:
     image: monoappserver
     container_name: monoappserver
+    hostname: monoappserver
     restart: always
+    depends_on:
+    - zookeeper
+    - kafka
+    - mysql
+    - elasticsearch
     ports:
     - 8092:8092
     networks:

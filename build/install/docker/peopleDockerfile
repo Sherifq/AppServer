@@ -21,18 +21,21 @@ RUN apt-get update -y && \
     locale-gen en_US.UTF-8 && \
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && \
     echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official.list && \
-    add-apt-repository -y ppa:certbot/certbot && \
     curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
     curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
-    apt-get update -y && \
-    apt-get install nodejs -yq && \
     wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
     dpkg -i packages-microsoft-prod.deb && \
+    wget http://nginx.org/keys/nginx_signing.key && \
+    apt-key add nginx_signing.key && \
+    echo "deb http://nginx.org/packages/mainline/ubuntu/ bionic nginx" >> /etc/apt/sources.list.d/nginx.list && \
+    echo "deb-src http://nginx.org/packages/mainline/ubuntu/ bionic nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get update -y && \
     cd ~ && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     apt-get install -yq libgdiplus \
+                        nodejs \
+                        nginx \
                         htop \
                         vim \
                         dnsutils \
@@ -52,36 +55,6 @@ RUN apt-get update -y && \
 COPY . /app/onlyoffice/src/
 
 RUN cd /app/onlyoffice/src/ && \
-    yarn install --cwd web/ASC.Web.Components --frozen-lockfile > build/ASC.Web.Components.log && \
-    npm run build --prefix web/ASC.Web.Components && \
-    yarn pack --cwd web/ASC.Web.Components
-
-RUN cd /app/onlyoffice/src/ && \
-    component=$(ls web/ASC.Web.Components/asc-web-components-v1.*.tgz) && \
-	yarn remove asc-web-components --cwd web/ASC.Web.Common --peer && \
-    yarn add file:../../$component --cwd web/ASC.Web.Common --cache-folder ../../yarn --peer && \
-    yarn install --cwd web/ASC.Web.Common --frozen-lockfile > build/ASC.Web.Common.log && \
-    npm run build --prefix web/ASC.Web.Common && \
-    yarn pack --cwd web/ASC.Web.Common
-
-RUN cd /app/onlyoffice/src/ && \
-    npm run build:storybook --prefix web/ASC.Web.Components && \
-    mkdir -p /var/www/story/ && \
-    cp -Rf web/ASC.Web.Components/storybook-static/* /var/www/story/
-
-RUN cd /app/onlyoffice/src/ && \
-    component=$(ls web/ASC.Web.Components/asc-web-components-v1.*.tgz) && \
-	common=$(ls web/ASC.Web.Common/asc-web-common-v1.*.tgz) && \
-	yarn remove asc-web-components asc-web-common --cwd web/ASC.Web.Client && \
-    yarn add ../../$component --cwd web/ASC.Web.Client --cache-folder ../../yarn && \
-	yarn add ../../$common --cwd web/ASC.Web.Client --cache-folder ../../yarn && \
-    yarn install --cwd web/ASC.Web.Client --frozen-lockfile || (cd web/ASC.Web.Client && npm i && cd ../../) && \
-    npm run build --prefix web/ASC.Web.Client && \
-    rm -rf /var/www/studio/client/* && \
-    mkdir -p /var/www/studio/client && \
-    cp -rf web/ASC.Web.Client/build/* /var/www/studio/client
-
-RUN cd /app/onlyoffice/src/ && \
     component=$(ls  web/ASC.Web.Components/asc-web-components-v1.*.tgz) && \
 	common=$(ls web/ASC.Web.Common/asc-web-common-v1.*.tgz) && \
 	yarn remove asc-web-components asc-web-common --cwd products/ASC.People/Client && \
@@ -96,19 +69,7 @@ RUN cd /app/onlyoffice/src/ && \
 RUN cd /app/onlyoffice/src/ && \
     mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
     cd products/ASC.People/Server && \
-    dotnet -d publish -o /var/www/products/ASC.People/server && \
-    cd ../../../ && \
-    cd web/ASC.Web.Api && \
-    dotnet -d publish -o /var/www/studio/api && \
-    cd ../../ && \
-    cd web/ASC.Web.Studio && \
-    dotnet -d publish -o /var/www/studio/server && \
-    cd ../../ && \
-    cd common/services/ASC.Notify && \
-    dotnet -d publish -o /var/www/services/notify && \
-    cd ../../../ && \
-    cd common/services/ASC.Studio.Notify && \
-    dotnet -d publish -o /var/www/services/studio.notify
+    dotnet -d publish -o /var/www/products/ASC.People/server
 
 #COPY config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # for local build

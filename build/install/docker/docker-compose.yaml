@@ -85,53 +85,49 @@ services:
     - mysql_data:/var/lib/mysql
     - mysql_log:/var/log/mysql
 
-      #  nginx:
-      #    image: nginx:stable
-      #    container_name: nginx
-      #    hostname: nginx
-      #    restart: always
-      #    expose:
-      #    - "80"
-      #    #- "443"
-      #    networks:
-      #    - onlyoffice
-      #      #108     cp -rf config/nginx/onlyoffice*.conf /etc/nginx/conf.d/ && \
-      #      #109     cp -rf config/nginx/includes /etc/nginx/ &&
-      #    volumes:
-      #        # so-so solution
-      #    - ../../../config/nginx/onlyoffice.conf:/etc/nginx/conf.d/onlyoffice.conf
-      #    - ../../../config/nginx/onlyoffice-people.conf:/etc/nginx/conf.d/onlyoffice-people.conf
-      #    - ../../../config/nginx/onlyoffice-story.conf:/etc/nginx/conf.d/onlyoffice-story.conf
-      #    - ../../../config/nginx/onlyoffice-studio.conf:/etc/nginx/conf.d/onlyoffice-studio.conf
-      #    - ../../../config/nginx/includes:/etc/nginx/
-      #    - nginx_log:/var/log/nginx
-      #
-
-  appserver:
-    image: monoappserver
-    container_name: monoappserver
-    hostname: monoappserver
+  nginx:
+    image: nginx:stable
+    container_name: nginx
+    hostname: nginx
     restart: always
-    depends_on:
-    - zookeeper
-    - kafka
-    - mysql
-    - elasticsearch
-    ports:
-    - 8092:8092
+    expose:
+    - "80"
+    #- "443"
     networks:
     - onlyoffice
-    environment:
-      MYSQL_HOST: mysql
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      KAFKA_HOST: kafka
-      ZOO_HOST: zookeeper
-      ES_HOST: elasticsearch
+      #108     cp -rf config/nginx/onlyoffice*.conf /etc/nginx/conf.d/ && \
+      #109     cp -rf config/nginx/includes /etc/nginx/ &&
     volumes:
-    - app_data:/app/onlyoffice/data/
+        # so-so solution
+    - frontnginx/onlyoffice.conf:/etc/nginx/conf.d/onlyoffice.conf
+    - nginx_log:/var/log/nginx
+
+
+      #  appserver:
+      #    image: monoappserver
+      #    container_name: monoappserver
+      #    hostname: monoappserver
+      #    restart: always
+      #    depends_on:
+      #    - zookeeper
+      #    - kafka
+      #    - mysql
+      #    - elasticsearch
+      #    ports:
+      #    - 8092:8092
+      #    networks:
+      #    - onlyoffice
+      #    environment:
+      #      MYSQL_HOST: mysql
+      #      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      #      MYSQL_USER: ${MYSQL_USER}
+      #      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      #      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      #      KAFKA_HOST: kafka
+      #      ZOO_HOST: zookeeper
+      #      ES_HOST: elasticsearch
+      #    volumes:
+      #    - app_data:/app/onlyoffice/data/
 
 networks:
   onlyoffice:

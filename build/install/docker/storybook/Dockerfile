@@ -14,6 +14,8 @@ ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
 
+COPY . /app/onlyoffice/src/
+
 RUN apt-get update -y && \
     apt-get install gnupg2 apt-transport-https ca-certificates sudo locales software-properties-common wget curl cron rsyslog -yq && \
     addgroup --system --gid 107 onlyoffice && \
@@ -24,65 +26,41 @@ RUN apt-get update -y && \
     curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
     curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
-    wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
-    dpkg -i packages-microsoft-prod.deb && \
     wget http://nginx.org/keys/nginx_signing.key && \
     apt-key add nginx_signing.key && \
     echo "deb http://nginx.org/packages/mainline/ubuntu/ bionic nginx" >> /etc/apt/sources.list.d/nginx.list && \
     echo "deb-src http://nginx.org/packages/mainline/ubuntu/ bionic nginx" >> /etc/apt/sources.list.d/nginx.list && \
+    wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
+    dpkg -i packages-microsoft-prod.deb && \
     apt-get update -y && \
     cd ~ && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     apt-get install -yq libgdiplus \
                         nodejs \
                         nginx \
-                        htop \
                         vim \
-                        dnsutils \
-                        python3-pip \
-                        multiarch-support \
-                        iproute2 \
                         ffmpeg \
                         jq \
-                        git \
                         yarn \
                         dotnet-sdk-3.1 \
                         supervisor \
-                        mysql-client
-
-#RUN git clone --single-branch --branch docker4serv https://github.com/Sherifq/AppServer.git /app/onlyoffice/src/
-# for local build
-COPY . /app/onlyoffice/src/
-
-RUN cd /app/onlyoffice/src/ && \
-    component=$(ls  web/ASC.Web.Components/asc-web-components-v1.*.tgz) && \
-	common=$(ls web/ASC.Web.Common/asc-web-common-v1.*.tgz) && \
-	yarn remove asc-web-components asc-web-common --cwd products/ASC.People/Client && \
-    yarn add ../../../$component --cwd products/ASC.People/Client --cache-folder ../../../yarn && \
-	yarn add ../../../$common --cwd products/ASC.People/Client --cache-folder ../../../yarn && \
-    yarn install --cwd products/ASC.People/Client --frozen-lockfile || (cd products/ASC.People/Client && npm i && cd ../../../) && \
-    npm run build --prefix products/ASC.People/Client && \
-    mkdir -p /var/www/products/ASC.People/client && \
-    cp -Rf products/ASC.People/Client/build/* /var/www/products/ASC.People/client && \
-    mkdir -p /var/www/products/ASC.People/client/products/people
-
-RUN cd /app/onlyoffice/src/ && \
+                        mysql-client && \
+    cd /app/onlyoffice/src/ && \
+    yarn install --cwd web/ASC.Web.Components --frozen-lockfile > build/ASC.Web.Components.log && \
+    npm run build --prefix web/ASC.Web.Components && \
+    yarn pack --cwd web/ASC.Web.Components && \
+    npm run build:storybook --prefix web/ASC.Web.Components && \
+    mkdir -p /var/www/story/ && \
+    cp -Rf web/ASC.Web.Components/storybook-static/* /var/www/story/ && \
+    cp build/install/docker/storybook/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
+    rm -f /etc/nginx/conf.d/* && \
+    cp -rf build/install/docker/storybook/onlyoffice-story.conf /etc/nginx/conf.d/ && \
     mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
-    cd products/ASC.People/Server && \
-    dotnet -d publish -o /var/www/products/ASC.People/server
+    dotnet nuget locals all --clear && \
+    yarn cache clean && \
+    rm -rf /app/onlyoffice/src && \
+    rm -rf /var/lib/apt/lists/
 
-#COPY config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-# for local build
-COPY build/install/docker/config/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+EXPOSE 8081 8082
 
-#COPY ./docker-entrypoint.sh /
-# for local build
-COPY build/install/docker/docker-entrypoint.sh /
-
-RUN chmod +x /docker-entrypoint.sh
-
-RUN rm -rf /var/lib/apt/lists/*
-
-EXPOSE 80 443 8092 8081
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/supervisord", "--"]

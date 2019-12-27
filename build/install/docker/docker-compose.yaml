@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 services:
 
@@ -85,22 +85,189 @@ services:
     - mysql_data:/var/lib/mysql
     - mysql_log:/var/log/mysql
 
-  nginx:
-    image: nginx:stable
-    container_name: nginx
-    hostname: nginx
+  api:
+    build:
+      context: ./../../../
+      dockerfile: build/install/docker/api/Dockerfile
+    image: api
+    container_name: api
+    hostname: api
     restart: always
     expose:
-    - "80"
-    #- "443"
+    - "5000"
     networks:
     - onlyoffice
-      #108     cp -rf config/nginx/onlyoffice*.conf /etc/nginx/conf.d/ && \
-      #109     cp -rf config/nginx/includes /etc/nginx/ &&
+    volumes:
+    - ../../../config/:/app/onlyoffice/config
+    - app_data:/app/onlyoffice/data/
+    - app_log:/var/log/supervisor/
+
+  storybook:
+    build:
+      context: ./../../../
+      dockerfile: build/install/docker/storybook/Dockerfile
+    image: storybook
+    container_name: storybook
+    hostname: storybook
+    restart: always
+    expose:
+    - "8081"
+    - "8082"
+    networks:
+    - onlyoffice
+    volumes:
+    - ../../../config/:/app/onlyoffice/config
+    - app_data:/app/onlyoffice/data/
+    - app_log:/var/log/supervisor/
+
+  studio.notify:
+    build:
+      context: ./../../../
+      dockerfile: build/install/docker/studio.notify/Dockerfile
+    image: studio.notify
+    container_name: studio.notify
+    hostname: studio_notify
+    restart: always
+    expose:
+    - "5006"
+    networks:
+    - onlyoffice
+    volumes:
+    - ../../../config/:/app/onlyoffice/config
+    - app_data:/app/onlyoffice/data/
+    - app_log:/var/log/supervisor/
+
+  client:
+    build:
+      context: ./../../../
+      dockerfile: build/install/docker/client/Dockerfile
+    image: client
+    container_name: client
+    hostname: client
+    restart: always
+    expose:
+    - "5001"
+    networks:
+    - onlyoffice
+    volumes:
+    - ../../../config/:/app/onlyoffice/config
+    - app_data:/app/onlyoffice/data/
+    - app_log:/var/log/supervisor/
+
+  studio:
+    build:
+      context: ./../../../
+      dockerfile: build/install/docker/studio/Dockerfile
+    image: studio
+    container_name: studio
+    hostname: studio
+    restart: always
+    expose:
+    - "5003"
+    networks:
+    - onlyoffice
+    volumes:
+    - ../../../config/:/app/onlyoffice/config
+    - app_data:/app/onlyoffice/data/
+    - app_log:/var/log/supervisor/
+
+  notify:
+    build:
+      context: ./../../../
+      dockerfile: build/install/docker/notify/Dockerfile
+    image: notify
+    container_name: notify
+    hostname: notify
+    restart: always
+    expose:
+    - "5005"
+    networks:
+    - onlyoffice
+    volumes:
+    - ../../../config/:/app/onlyoffice/config
+    - app_data:/app/onlyoffice/data/
+    - app_log:/var/log/supervisor/
+
+  people.server:
+    build:
+      context: ./../../../
+      dockerfile: build/install/docker/people.server/Dockerfile
+    image: people.server
+    container_name: people.server
+    hostname: people_server
+    restart: always
+    expose:
+    - "5004"
+    networks:
+    - onlyoffice
+    volumes:
+    - ../../../config/:/app/onlyoffice/config
+    - app_data:/app/onlyoffice/data/
+    - app_log:/var/log/supervisor/
+
+  people.client:
+    build:
+      context: ./../../../
+      dockerfile: build/install/docker/people.client/Dockerfile
+    image: people.client
+    container_name: people.client
+    hostname: people_client
+    restart: always
+    expose:
+    - "5002"
+    networks:
+    - onlyoffice
+    volumes:
+    - ../../../config/:/app/onlyoffice/config
+    - app_data:/app/onlyoffice/data/
+    - app_log:/var/log/supervisor/
+
+  nginx:
+    build:
+      context: ./../../../
+      dockerfile: build/install/docker/frontnginx/Dockerfile
+    image: frontnginx
+    container_name: frontnginx
+    hostname: frontnginx
+    restart: always
+    expose:
+        #    - "80"
+        #    - "443"
+    - "8092"
+    networks:
+    - onlyoffice
+    depends_on:
+    - api
+    - client
+    - notify
+    - people.client
+    - people.server
+    - storybook
+    - studio
+    - studio.notify
+      #command: ["sleep", "3600"]
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
+      ZOO_HOST: zookeeper
+      ES_HOST: elasticsearch
+      API_HOSTS: api
+      CLIENT_HOSTS: client
+      NOTIFY_HOSTS: notify
+      PEOPLECLIENT_HOSTS: people.client
+      PEOPLESERVER_HOSTS: people.server
+      STORYBOOK_HOSTS: storybook
+      STUDIO_HOSTS: studio
+      STUDIONOTIFY_HOSTS: studio.notify
     volumes:
         # so-so solution
-    - frontnginx/onlyoffice.conf:/etc/nginx/conf.d/onlyoffice.conf
+    - ../../../config/:/app/onlyoffice/config
     - nginx_log:/var/log/nginx
+
 
 
       #  appserver:
@@ -141,5 +308,8 @@ volumes:
   zoo_data:
   zoo_log:
   kafka_data:
+  app_settings:
   app_data:
+  app_log:
+
 

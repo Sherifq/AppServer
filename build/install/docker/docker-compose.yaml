@@ -191,7 +191,7 @@ services:
   people.server:
     build:
       context: ./../../../
-      dockerfile: build/install/docker/people.server/Dockerfile
+      dockerfile: build/install/docker/people.server/Dockerfile.full
     image: people.server
     container_name: people.server
     hostname: people_server
@@ -245,7 +245,6 @@ services:
     - storybook
     - studio
     - studio.notify
-      #command: ["sleep", "3600"]
     environment:
       MYSQL_HOST: mysql
       MYSQL_DATABASE: ${MYSQL_DATABASE}

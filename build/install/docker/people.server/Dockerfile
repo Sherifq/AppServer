@@ -25,16 +25,6 @@ RUN apt-get update -y && \
     apt-get update -y && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     apt-get install -yq vim \
-                        libgdiplus \
-                        python-certbot-nginx \
-                        htop \
-                        nano \
-                        vim \
-                        dnsutils \
-                        python3-pip \
-                        multiarch-support \
-                        iproute2 \
-                        ffmpeg \
                         jq \
                         dotnet-sdk-3.1 \
                         supervisor \

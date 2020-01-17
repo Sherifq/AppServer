@@ -2,6 +2,7 @@ import React from 'react'
 import styled, { css } from 'styled-components'
 import PropTypes from 'prop-types'
 import { Icons } from '../icons'
+import { tablet } from '../../utils/device'
 
 const itemTruncate = css`
     white-space: nowrap;
@@ -26,12 +27,12 @@ const disabledAndHeaderStyle = css`
 const StyledDropdownItem = styled.div`
     display: block;
     width: 100%;
-    max-width: 280px;
+    max-width: 240px;
     border: 0px;
     cursor: pointer;
     margin: 0px;
-    padding: 0 16px;
-    line-height: 36px;
+    padding: 0px 16px;
+    line-height: 32px;
     box-sizing: border-box;
     text-align: left;
     background: none;
@@ -51,21 +52,14 @@ const StyledDropdownItem = styled.div`
     &:hover {
       background-color: ${props => props.noHover ? 'white' : '#F8F9F9'};
       text-align: left;
-
-      &:first-of-type {
-        border-radius: 6px 6px 0 0;
-      }
-
-      &:last-of-type {
-        border-radius: 0 0 6px 6px;
-      }
     }
 
     ${props => props.isSeparator && 
       `
+        padding: 0px 16px;
         border: 0.5px solid #ECEEF1;
         cursor: default;
-        margin: 0px 16px;
+        margin: 6px 16px 6px;
         line-height: 1px;
         height: 1px;
         width: calc(100% - 32px);
@@ -82,6 +76,10 @@ const StyledDropdownItem = styled.div`
 
         text-transform: uppercase;
       `
+    }
+
+    @media ${ tablet } {
+      line-height: 36px;
     }
   
     ${props => props.disabled && disabledAndHeaderStyle }

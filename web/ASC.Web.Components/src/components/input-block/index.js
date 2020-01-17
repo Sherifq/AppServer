@@ -11,16 +11,13 @@ const iconNames = Object.keys(Icons);
 const StyledIconBlock = styled.div`
   display: flex;
   align-items: center;
-  width: ${props =>
-    (props.size === 'base' && '22px') ||
-    (props.size === 'middle' && '27px') ||
-    (props.size === 'big' && '30px') ||
-    (props.size === 'huge' && '30px')
-  };
+
   cursor: ${props =>
     props.isDisabled || !props.isClickable ? "default" : "pointer"};
   height: 100%;
-  padding-right: 7px;
+  padding-right: 8px;
+  padding-left: 1px;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
 `;
 
 const StyledChildrenBlock = styled.div`
@@ -52,15 +49,11 @@ const StyledInputGroup = styled(CustomInputGroup)`
 class InputBlock extends React.Component {
   constructor(props) {
     super(props);
-
-    this.onIconClick = this.onIconClick.bind(this);
-    this.onChange = this.onChange.bind(this);
-
   }
-  onIconClick(e) {
+  onIconClick = (e) => {
     if (typeof this.props.onIconClick === "function" && !this.props.isDisabled) this.props.onIconClick(e);
   }
-  onChange(e) {
+  onChange = (e) => {
     if (typeof this.props.onChange === "function") this.props.onChange(e);
   }
 
@@ -91,6 +84,7 @@ class InputBlock extends React.Component {
       keepCharPositions,
       iconName,
       iconColor,
+      hoverColor,
       isIconFill,
       onIconClick,
       iconSize
@@ -111,9 +105,6 @@ class InputBlock extends React.Component {
           break;
         case 'huge':
           iconButtonSize = 24;
-          break;
-
-        default:
           break;
       }
     }
@@ -166,6 +157,7 @@ class InputBlock extends React.Component {
                 <IconButton
                   size={iconButtonSize}
                   color={iconColor}
+                  hoverColor={hoverColor}
                   iconName={iconName}
                   isFill={isIconFill}
                   isDisabled={isDisabled}
@@ -206,6 +198,7 @@ InputBlock.propTypes = {
   value: PropTypes.string,
   iconName: PropTypes.string,
   iconColor: PropTypes.string,
+  hoverColor: PropTypes.string,
   iconSize: PropTypes.number,
   isIconFill: PropTypes.bool,
   onIconClick: PropTypes.func,
@@ -233,6 +226,7 @@ InputBlock.defaultProps = {
   value: '',
   iconName: "",
   iconColor: "#ffffff",
+  hoverColor: "#ffffff",
   isIconFill: false,
   isDisabled: false,
   keepCharPositions: false

@@ -7,7 +7,7 @@ import Calendar from "../calendar";
 import moment from "moment";
 import { handleAnyClick } from "../../utils/event";
 import isEmpty from "lodash/isEmpty";
-import Aside from "../layout/sub-components/aside";
+import Aside from "../aside";
 import { desktop } from "../../utils/device";
 import Backdrop from "../backdrop";
 import Heading from "../heading";
@@ -26,6 +26,7 @@ const DropDownStyle = styled.div`
 `;
 
 const Content = styled.div`
+  box-sizing: border-box;
   position: relative;
   width: 100%;
   background-color: #fff;
@@ -371,7 +372,7 @@ class DatePicker extends Component {
         {isOpen ? (
           displayType === "dropdown" ? (
             <DropDownStyle>
-              <DropDown className="drop-down" opened={isOpen}>
+              <DropDown className="drop-down" open={isOpen}>
                 {this.renderBody()}
               </DropDown>
             </DropDownStyle>

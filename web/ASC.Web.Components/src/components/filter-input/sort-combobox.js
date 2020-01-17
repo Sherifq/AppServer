@@ -14,7 +14,7 @@ const StyledIconButton = styled.div`
 const StyledComboBox = styled(ComboBox)`
     display: block;
     float: left;
-    width: 20%;
+    width: 132px;
     margin-left: 8px;
 
     @media ${mobile} {
@@ -22,6 +22,10 @@ const StyledComboBox = styled(ComboBox)`
         .optionalBlock ~ div:first-child{
             opacity: 0
         }
+    }
+
+    .combo-button-label {
+        color: #A3A9AE;
     }
 
 `;
@@ -83,6 +87,8 @@ class SortComboBox extends React.Component {
             { value: '1', label: this.props.directionDescLabel }
         ];
 
+        const isMobile = window.innerWidth > 375; //TODO: Make some better
+
         const advancedOptions = (
             <>
                 <DropDownItem noHover >
@@ -94,6 +100,7 @@ class SortComboBox extends React.Component {
                         spacing='0px'
                         name={'direction'}
                         options={sortDirectionArray}
+                        fontWeight ={600}
                     />
                 </DropDownItem>
                 <DropDownItem isSeparator />
@@ -106,6 +113,7 @@ class SortComboBox extends React.Component {
                         spacing='0px'
                         name={'sort'}
                         options={sortArray}
+                        fontWeight ={600}
                     />
                 </DropDownItem>
             </>
@@ -118,12 +126,13 @@ class SortComboBox extends React.Component {
                 isDisabled={this.props.isDisabled}
                 selectedOption={this.props.selectedOption}
                 scaled={true}
+                scaledOptions={isMobile}
                 size="content"
                 directionX="right"
             >
                 <StyledIconButton sortDirection={!!this.state.sortDirection}>
                     <IconButton
-                        color={"#D8D8D8"}
+                        color={"#A3A9AE"}
                         hoverColor={"#333"}
                         clickColor={"#333"}
                         size={10}

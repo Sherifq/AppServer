@@ -37,6 +37,8 @@ const StyledComboButton = styled.div`
     border: 1px solid #D0D5DA;
     border-radius: 3px;
   `}
+
+  border-color: ${props => props.isOpen && '#2DA7DB'};
   
   ${props => props.isDisabled && !props.noBorder && `
     border-color: #ECEEF1;
@@ -58,22 +60,31 @@ const StyledComboButton = styled.div`
     `}
   }
   .combo-button-label{
-    margin-right: 8px;
+    margin-right: ${props => props.noBorder ? `4px` : `8px`};
+    color: ${props => props.isDisabled ? '#D0D5DA' : '#333333'};
     max-width: 175px;
     ${props => props.noBorder && `
       line-height: 15px;
-      border-bottom: 1px dashed transparent;
+      text-decoration: underline dashed transparent;
     `}
+    
+    ${props => props.isOpen && props.noBorder && `
+      text-decoration: underline dashed;
+    `};
   }
   .combo-button-label:hover{
-    ${props => props.noBorder && `
-      border-bottom: 1px dashed;
+    ${props => props.noBorder && !props.isDisabled && `
+      text-decoration: underline dashed;
     `}
   }
 `;
 
 const StyledOptionalItem = styled.div`
   margin-right: 8px;
+
+  path {
+    fill: ${props => props.color && props.color};
+  }
 `;
 
 const StyledIcon = styled.div`
@@ -114,6 +125,7 @@ class ComboButton extends React.Component {
 
     const boxIconColor = isDisabled ? '#D0D5DA' : '#333333';
     const arrowIconColor = isDisabled ? '#D0D5DA' : '#A3A9AE';
+    const defaultIconColor = selectedOption.default ? arrowIconColor : boxIconColor;
 
     return (
       <StyledComboButton
@@ -127,16 +139,16 @@ class ComboButton extends React.Component {
         size={size}
       >
         {innerContainer &&
-          <StyledOptionalItem className={innerContainerClassName}>
+          <StyledOptionalItem className={innerContainerClassName} color={defaultIconColor}>
             {innerContainer}
           </StyledOptionalItem>
         }
         {selectedOption && selectedOption.icon &&
-          <StyledIcon>
+          <StyledIcon className="forceColor">
             {React.createElement(Icons[selectedOption.icon],
               {
                 size: 'scale',
-                color: boxIconColor,
+                color: defaultIconColor,
                 isfill: true
               })
             }
@@ -149,6 +161,7 @@ class ComboButton extends React.Component {
           truncate={true}
           fontWeight={600}
           className="combo-button-label"
+          color={selectedOption.default ? arrowIconColor +' !important' : boxIconColor}
         >
           {selectedOption.label}
         </Text>

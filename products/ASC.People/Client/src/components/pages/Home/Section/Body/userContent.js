@@ -26,10 +26,12 @@ const getFormatedGroups = (user, status) => {
   if (temp.length <= 1) {
     return (
       <Link
+        isTextOverflow={true}
         containerWidth='160px'
         type='action'
         title={temp[0].label}
         fontSize='12px'
+        fontWeight={600}
         color={linkColor}
         onClick={temp[0].onClick}
       >
@@ -42,6 +44,7 @@ const getFormatedGroups = (user, status) => {
         containerWidth='160px'
         title={temp[0].label}
         fontSize='12px'
+        fontWeight={600}
         color={linkColor}
         data={temp}
       >
@@ -71,7 +74,7 @@ const UserContent = ({ user, history, settings }) => {
   );
 
   const nameColor = status === 'pending' ? '#A3A9AE' : '#333333';
-  const sideInfoColor = status === 'pending' ? '#D0D5DA' : '#A3A9AE';
+  const sideInfoColor = ((status === 'pending') || (status === 'disabled')) ? '#D0D5DA' : '#A3A9AE';
   //const { t } = useTranslation();
 
   const headDepartmentStyle = {
@@ -79,8 +82,10 @@ const UserContent = ({ user, history, settings }) => {
   }
 
   return (
-    <RowContent>
-      <Link type='page' title={displayName} isBold={true} fontSize='15px' color={nameColor} onClick={onUserNameClick} isTextOverflow={true} >{displayName}</Link>
+    <RowContent
+      sideColor={sideInfoColor}
+    >
+      <Link type='page' title={displayName} fontWeight={600} fontSize='15px' color={nameColor} onClick={onUserNameClick} isTextOverflow={true} >{displayName}</Link>
       <>
         {status === 'pending' && <Icons.SendClockIcon size='small' isfill={true} color='#3B72A7' />}
         {status === 'disabled' && <Icons.CatalogSpamIcon size='small' isfill={true} color='#3B72A7' />}
@@ -89,9 +94,10 @@ const UserContent = ({ user, history, settings }) => {
         ?
           <Text
             style={headDepartmentStyle}
-            as="span"
+            as="div"
             color={sideInfoColor}
             fontSize='12px'
+            fontWeight={600}
             title={title}
             truncate={true}
           >
@@ -100,8 +106,8 @@ const UserContent = ({ user, history, settings }) => {
         : <div style={headDepartmentStyle}></div>
       }
       {groups}
-      <Link type='page' title={mobilePhone} fontSize='12px' color={sideInfoColor} onClick={onPhoneClick} isTextOverflow={true}>{mobilePhone}</Link>
-      <Link containerWidth='220px' type='page' title={email} fontSize='12px' color={sideInfoColor} onClick={onEmailClick} isTextOverflow={true}>{email}</Link>
+      <Link type='page' title={mobilePhone} fontSize='12px' fontWeight={600} color={sideInfoColor} onClick={onPhoneClick} isTextOverflow={true}>{mobilePhone}</Link>
+      <Link containerWidth='220px' type='page' title={email} fontSize='12px' fontWeight={600} color={sideInfoColor} onClick={onEmailClick} isTextOverflow={true}>{email}</Link>
     </RowContent>
   );
 };

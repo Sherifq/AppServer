@@ -70,7 +70,7 @@ const StyledMainButton = styled.div`
   box-sizing: border-box;
   background-color: ${props =>
     props.isDisabled ? disableBackgroundColor : backgroundColor};
-  padding: 5px 11px;
+  padding: 5px 10px;
   border-radius: 3px;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
@@ -166,13 +166,15 @@ class MainButton extends React.PureComponent {
     return (
       <GroupMainButton {...this.props} ref={this.ref}>
         <StyledMainButton {...this.props} onClick={this.onMainButtonClick}>
-          <Text fontSize='16px' fontWeight="600" color="#fff">
+          <Text fontSize='16px' fontWeight='bold' color="#fff">
             {this.props.text}
           </Text>
         </StyledMainButton>
         {this.props.isDropdown ? (
           <StyledDropDown
-            isOpen={this.state.isOpen}
+            open={this.state.isOpen}
+            withBackdrop
+            clickOutsideAction={this.handleClick}
             {...this.props}
             onClick={this.onDropDownClick}
           />

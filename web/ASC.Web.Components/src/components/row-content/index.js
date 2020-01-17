@@ -24,6 +24,7 @@ const StyledRowContent = styled.div`
   ${props => !props.disableSideInfo && `
     @media ${tablet} {
       display: block;
+      height: 56px;
     }
   `};
 `;
@@ -35,12 +36,14 @@ const MainContainerWrapper = styled.div`
   align-self: center;
   margin-right: auto;
   min-width: 140px;
+  width: 48%;
 
   ${props => !props.disableSideInfo && `
     @media ${tablet} {
       min-width: 140px;
       margin-right: 8px;
-      margin-top: 6px;
+      margin-top: 8px;
+      width: 95%;
     }
   `};
 `;
@@ -48,9 +51,11 @@ const MainContainerWrapper = styled.div`
 const MainContainer = styled.div`
   height: 20px;
   margin-right: 8px;
+  max-width: 86%;
 
   @media ${tablet} {
     ${truncateCss};
+    max-width: 100%;
   }
 
 `;
@@ -68,6 +73,12 @@ const SideContainerWrapper = styled.div`
   }
 
   align-self: center;
+  align-items: center;
+
+  > a {
+    vertical-align: middle;
+  }
+
   width: ${props => props.containerWidth ? props.containerWidth : '100px'};
   color: ${props => props.color && props.color};
 
@@ -110,7 +121,7 @@ const getSideInfo = content => {
 
 const RowContent = props => {
   //console.log("RowContent render");
-  const { children, disableSideInfo, id, className, style } = props;
+  const { children, disableSideInfo, id, className, style, sideColor } = props;
 
   const sideInfo = getSideInfo(children);
 
@@ -138,7 +149,7 @@ const RowContent = props => {
         }
       })}
       {!disableSideInfo &&
-        <TabletSideInfo >
+        <TabletSideInfo color={sideColor}>
           {sideInfo}
         </TabletSideInfo>
       }
@@ -149,6 +160,7 @@ const RowContent = props => {
 RowContent.propTypes = {
   children: PropTypes.node.isRequired,
   disableSideInfo: PropTypes.bool,
+  sideColor: PropTypes.string,
   className: PropTypes.string,
   id: PropTypes.string,
   style: PropTypes.oneOfType([PropTypes.object, PropTypes.array])

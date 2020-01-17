@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { Icons } from "../icons";
 import DropDown from "../drop-down";
 import { handleAnyClick } from "../../utils/event";
+import PropTypes from 'prop-types';
 
 const Caret = styled.div`
   width: 7px;
@@ -42,7 +43,7 @@ const StyledHideFilter = styled.div`
 `;
 const DropDownStyle = styled.div`
   .drop-down {
-    padding: 8px;
+    padding: 16px;
   }
   position: relative;
 `;
@@ -54,7 +55,7 @@ class HideFilter extends React.Component {
     this.ref = React.createRef();
     this.dropDownRef = React.createRef();
     this.state = {
-      popoverOpen: false
+      popoverOpen: this.props.open
     };
   }
 
@@ -71,7 +72,7 @@ class HideFilter extends React.Component {
 
   handleClick = e => {
     this.state.popoverOpen &&
-      !this.ref.current.contains(e.target) &&
+      !this.dropDownRef.current.firstElementChild.contains(e.target) &&
       this.onClick(false);
   };
 
@@ -110,7 +111,8 @@ class HideFilter extends React.Component {
           <DropDown
             className="drop-down"
             manualY="8px"
-            opened={this.state.popoverOpen}
+            open={this.state.popoverOpen}
+            clickOutsideAction={this.handleClick}
           >
             {this.props.children}
           </DropDown>
@@ -119,5 +121,10 @@ class HideFilter extends React.Component {
     );
   }
 }
-
+HideFilter.propTypes = {
+  children: PropTypes.any,
+  open: PropTypes.bool,
+  isDisabled: PropTypes.bool,
+  count: PropTypes.number
+}
 export default HideFilter;

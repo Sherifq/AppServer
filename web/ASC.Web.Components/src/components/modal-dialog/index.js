@@ -2,10 +2,11 @@ import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import Backdrop from "../backdrop";
-import Aside from "../layout/sub-components/aside";
+import Aside from "../aside";
 import Heading from "../heading";
 import { desktop } from "../../utils/device";
 import throttle from "lodash/throttle";
+import { Icons } from "../icons";
 
 const Dialog = styled.div`
   position: relative;
@@ -37,28 +38,22 @@ const StyledHeader = styled.div`
   border-bottom: 1px solid #dee2e6;
 `;
 
-const CloseButton = styled.a`
-  cursor: pointer;
-  position: absolute;
-  right: 16px;
-  top: 20px;
-  width: 16px;
-  height: 16px;
+const CloseButton = styled(Icons.CrossSidebarIcon)`
+cursor: pointer;
+position: absolute;
 
-  &:before,
-  &:after {
-    position: absolute;
-    left: 8px;
-    content: " ";
-    height: 16px;
-    width: 1px;
-    background-color: #d8d8d8;
-  }
-  &:before {
-    transform: rotate(45deg);
-  }
-  &:after {
-    transform: rotate(-45deg);
+width: 17px;
+height: 17px;
+min-width: 17px;
+min-height: 17px;
+
+right: 16px;
+top: 19px;
+
+  &:hover {
+      path {
+        fill: #657077;
+      }
   }
 `;
 
@@ -113,11 +108,19 @@ class ModalDialog extends React.Component {
 
   componentDidMount() {
     window.addEventListener("resize", this.throttledResize);
+    window.addEventListener("keyup", this.onKeyPress);
   }
 
   componentWillUnmount() {
     window.removeEventListener("resize", this.throttledResize);
+    window.removeEventListener("keyup", this.onKeyPress);
   }
+
+  onKeyPress = event => {
+    if (event.key === "Esc" || event.key === "Escape") {
+      this.props.onClose();
+    }
+  };
 
   render() {
     const {

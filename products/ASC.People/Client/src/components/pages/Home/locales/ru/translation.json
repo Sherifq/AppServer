@@ -39,6 +39,7 @@
   "LblInvited": "Invited",
   "LblSetActive": "Разблокировать",
   "LblSetDisabled": "Заблокировать",
+  "MessageEmailActivationInstuctionsSentOnEmail": "Инструкции по активации электронной почты были отправлены на адрес <1>{{email}}</1>",
 
   "CustomHeadOfDepartment": " {{headOfDepartment}}",
   "CustomTypeGuest": "{{typeGuest}}",
@@ -52,5 +53,13 @@
   "DirectionAscLabel":"А-Я",
   "DirectionDescLabel":"Я-А",
 
-  "DefaultSelectLabel": "Выберите"
+  "DefaultSelectLabel": "Выберите",
+
+  "FilterPlaceholder": "Поиск",
+
+  "CustomNewEmployee": "Новый {{typeUser, lowercase}}",
+  "CustomNewGuest": "Новый {{typeGuest, lowercase}}",
+  "CustomNewDepartment": "Новый {{department, lowercase}}",
+  "MakeInvitationLink": "Создать пригласительную ссылку",
+  "SendInvitationAgain": "Отправить приглашение ещё раз"
 }

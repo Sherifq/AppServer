@@ -30,6 +30,7 @@ const renderItems = (
   pattern,
   onTypeChange,
   onTextChange,
+  onRemove,
   isDisabled
 ) => {
   const items = contacts.map((contact, index) => {
@@ -50,6 +51,8 @@ const renderItems = (
         inputName={prefix + "value"}
         inputValue={contact.value}
         inputOnChange={onTextChange}
+        removeButtonName={prefix + "remove"}
+        removeButtonOnChange={onRemove}
       />
     );
   });
@@ -72,6 +75,7 @@ class ContactsField extends React.Component {
       onItemAdd,
       onItemTypeChange,
       onItemTextChange,
+      onItemRemove,
       isDisabled
     } = this.props;
 
@@ -80,6 +84,7 @@ class ContactsField extends React.Component {
       pattern,
       onItemTypeChange,
       onItemTextChange,
+      onItemRemove,
       isDisabled
     );
 
@@ -95,7 +100,8 @@ class ContactsField extends React.Component {
           selectedOption={{
             key: prefix,
             label: addItemText,
-            value: ""
+            value: "",
+            default: true
           }}
           isDisabled={isDisabled}
           scaled={true}

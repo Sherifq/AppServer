@@ -1,7 +1,7 @@
 import React from "react";
 import { withRouter } from "react-router";
 import { connect } from "react-redux";
-import { withTranslation } from "react-i18next";
+import { withTranslation, Trans } from "react-i18next";
 import {
   Row,
   Avatar,
@@ -10,11 +10,7 @@ import {
   Icons,
   Link,
   RowContainer,
-  ModalDialog,
-  Button,
   Text,
-  Label,
-  TextInput
 } from "asc-web-components";
 import UserContent from "./userContent";
 import {
@@ -33,8 +29,10 @@ import {
 import { isMobileOnly } from "react-device-detect";
 import isEqual from "lodash/isEqual";
 import { store, api, constants } from 'asc-web-common';
+import i18n from '../../i18n';
+import { ChangeEmailDialog, ChangePasswordDialog, DeleteSelfProfileDialog, DeleteProfileEverDialog } from '../../../../dialogs';
 const { isAdmin, isMe } = store.auth.selectors;
-const { resendUserInvites, sendInstructionsToDelete, sendInstructionsToChangePassword, deleteUser } = api.people;
+const { resendUserInvites } = api.people;
 const { EmployeeStatus } = constants;
 
 
@@ -43,13 +41,13 @@ class SectionBodyContent extends React.PureComponent {
     super(props);
 
     this.state = {
-      newEmail: null,
-      dialog: {
-        visible: false,
-        header: "",
-        body: "",
-        buttons: []
-      }
+      dialogsVisible: {
+        changeEmail: false,
+        changePassword: false,
+        deleteSelfProfile: false,
+        deleteProfileEver: false,
+      },
+      isEmailValid: false
     };
   }
 
@@ -66,120 +64,41 @@ class SectionBodyContent extends React.PureComponent {
     history.push(`${settings.homepage}/edit/${user.userName}`);
   };
 
-  onChangePasswordClick = email => {
+  toggleChangePasswordDialog = (email) => {
+    const checkedEmail = typeof (email) === 'string' ? email : undefined;
     this.setState({
-      dialog: {
-        visible: true,
-        header: "Password change",
-        body: (
-          <Text>
-            Send the password change instructions to the{" "}
-            <Link type="page" href={`mailto:${email}`} isHovered title={email}>
-              {email}
-            </Link>{" "}
-            email address
-          </Text>
-        ),
-        buttons: [
-          <Button
-            key="OkBtn"
-            label="Send"
-            size="medium"
-            primary={true}
-            onClick={() => {
-              const { onLoading } = this.props;
-              onLoading(true);
-              sendInstructionsToChangePassword(email)
-              .then(() =>
-                  toastr.success(
-                    <Text>
-                      The password change instructions have been sent to the{" "}
-                      <b>{email}</b> email address
-                    </Text>
-                  )
-                )
-                .catch(error => toastr.error(error))
-                .finally(() => onLoading(false));
-              this.onDialogClose();
-            }}
-          />,
-          <Button
-            key="CancelBtn"
-            label="Cancel"
-            size="medium"
-            primary={false}
-            onClick={this.onDialogClose}
-            style={{ marginLeft: "8px" }}
-          />
-        ]
-      }
+      dialogsVisible: { ...this.state.dialogsVisible, changePassword: !this.state.dialogsVisible.changePassword },
+      user: { email: checkedEmail }
     });
   };
 
-  onChangeEmailClick = email => {
+  toggleChangeEmailDialog = (user) => {
+    const checkedUser = user ? user : {};
     this.setState({
-      dialog: {
-        visible: true,
-        header: "Email change",
-        body: (
-          <>
-            <Label htmlFor="new-email" text="Enter a new email address" />
-            <TextInput
-              id="new-email"
-              scale={true}
-              isAutoFocussed={true}
-              value={this.state.newEmail}
-              onChange={e => {
-                this.setState({ newEmail: e.target.value });
-              }}
-            />
-            <Text style={{ marginTop: "16px" }}>
-              The activation instructions will be sent to the entered email
-            </Text>
-          </>
-        ),
-        buttons: [
-          <Button
-            key="OkBtn"
-            label="Send"
-            size="medium"
-            primary={true}
-            onClick={() => {
-              toastr.success(
-                `Context action: Change e-mail from ${email} to ${this.state.newEmail}`
-              );
-              this.onDialogClose();
-            }}
-          />,
-          <Button
-            key="CancelBtn"
-            label="Cancel"
-            size="medium"
-            primary={false}
-            onClick={this.onDialogClose}
-            style={{ marginLeft: "8px" }}
-          />
-        ]
+      dialogsVisible: { ...this.state.dialogsVisible, changeEmail: !this.state.dialogsVisible.changeEmail },
+      user: {
+        email: checkedUser.email,
+        id: checkedUser.id
       }
     });
   };
 
   onDisableClick = user => {
-    const { updateUserStatus, onLoading } = this.props;
+    const { updateUserStatus, onLoading, t } = this.props;
 
     onLoading(true);
     updateUserStatus(EmployeeStatus.Disabled, [user.id])
-      .then(() => toastr.success("SUCCESS Context action: Disable"))
+      .then(() => toastr.success(t('SuccessChangeUserStatus')))
       .catch(error => toastr.error(error))
       .finally(() => onLoading(false));
   };
 
   onEnableClick = user => {
-    const { updateUserStatus, onLoading } = this.props;
+    const { updateUserStatus, onLoading, t } = this.props;
 
     onLoading(true);
     updateUserStatus(EmployeeStatus.Active, [user.id])
-      .then(() => toastr.success("SUCCESS Context action: Enable"))
+      .then(() => toastr.success(t('SuccessChangeUserStatus')))
       .catch(error => toastr.error(error))
       .finally(() => onLoading(false));
   };
@@ -193,116 +112,23 @@ class SectionBodyContent extends React.PureComponent {
     toastr.success("Context action: Delete personal data");
   };
 
-  onDeleteProfileEverClick = user => {
+  toggleDeleteProfileEverDialog = user => {
+    const checkedUser = user ? user : {};
     this.setState({
-      dialog: {
-        visible: true,
-        header: "Confirmation",
-        body: (
-          <>
-            <Text>
-              User <b>{user.displayName}</b> will be deleted.
-            </Text>
-            <Text>Note: this action cannot be undone.</Text>
-            <Text color="#c30" fontSize="18" style={{ margin: "20px 0" }}>
-              Warning!
-            </Text>
-            <Text>
-              User personal documents which are available to others will be
-              deleted. To avoid this, you must start the data reassign process
-              before deleting.
-            </Text>
-          </>
-        ),
-        buttons: [
-          <Button
-            key="OkBtn"
-            label="OK"
-            size="medium"
-            primary={true}
-            onClick={() => {
-              const { onLoading, filter, fetchPeople } = this.props;
-              onLoading(true);
-              deleteUser(user.id)
-                .then(() => {
-                  toastr.success("User has been removed successfully");
-                  return fetchPeople(filter);
-                })
-                .catch(error => toastr.error(error))
-                .finally(() => onLoading(false));
-              this.onDialogClose();
-            }}
-          />,
-          <Button
-            key="ReassignBtn"
-            label="Reassign data"
-            size="medium"
-            primary={true}
-            onClick={() => {
-              toastr.success("Context action: Reassign profile");
-              this.onDialogClose();
-            }}
-            style={{ marginLeft: "8px" }}
-          />,
-          <Button
-            key="CancelBtn"
-            label="Cancel"
-            size="medium"
-            primary={false}
-            onClick={this.onDialogClose}
-            style={{ marginLeft: "8px" }}
-          />
-        ]
+      dialogsVisible: { ...this.state.dialogsVisible, deleteProfileEver: !this.state.dialogsVisible.deleteProfileEver },
+      user: {
+        id: checkedUser.id,
+        displayName: checkedUser.displayName,
+        userName: checkedUser.userName,
       }
     });
   };
 
-  onDeleteSelfProfileClick = email => {
+  toggleDeleteSelfProfileDialog = email => {
+    const checkedEmail = typeof (email) === 'string' ? email : undefined;
     this.setState({
-      dialog: {
-        visible: true,
-        header: "Delete profile dialog",
-        body: (
-          <Text>
-            Send the profile deletion instructions to the email address{" "}
-            <Link type="page" href={`mailto:${email}`} isHovered title={email}>
-              {email}
-            </Link>
-          </Text>
-        ),
-        buttons: [
-          <Button
-            key="OkBtn"
-            label="Send"
-            size="medium"
-            primary={true}
-            onClick={() => {
-              const { onLoading } = this.props;
-              onLoading(true);
-              sendInstructionsToDelete()
-                .then(() =>
-                  toastr.success(
-                    <Text>
-                      Instructions to delete your profile has been sent to{" "}
-                      <b>{email}</b> email address
-                    </Text>
-                  )
-                )
-                .catch(error => toastr.error(error))
-                .finally(() => onLoading(false));
-              this.onDialogClose();
-            }}
-          />,
-          <Button
-            key="CancelBtn"
-            label="Cancel"
-            size="medium"
-            primary={false}
-            onClick={this.onDialogClose}
-            style={{ marginLeft: "8px" }}
-          />
-        ]
-      }
+      dialogsVisible: { ...this.state.dialogsVisible, deleteSelfProfile: !this.state.dialogsVisible.deleteSelfProfile },
+      user: { email: checkedEmail }
     });
   };
 
@@ -313,8 +139,10 @@ class SectionBodyContent extends React.PureComponent {
       .then(() =>
         toastr.success(
           <Text>
-            The email activation instructions have been sent to the{" "}
-            <b>{user.email}</b> email address
+            <Trans i18nKey='MessageEmailActivationInstuctionsSentOnEmail' i18n={i18n}>
+                The email activation instructions have been sent to the
+                <strong>{{email: user.email}}</strong> email address
+            </Trans>
           </Text>
         )
       )
@@ -344,11 +172,11 @@ class SectionBodyContent extends React.PureComponent {
             onClick: this.onEmailSentClick.bind(this, user.email)
           },
           user.mobilePhone &&
-            isMobileOnly && {
-              key: "send-message",
-              label: t("LblSendMessage"),
-              onClick: this.onSendMessageClick.bind(this, user.mobilePhone)
-            },
+          isMobileOnly && {
+            key: "send-message",
+            label: t("LblSendMessage"),
+            onClick: this.onSendMessageClick.bind(this, user.mobilePhone)
+          },
           { key: "separator", isSeparator: true },
           {
             key: "edit",
@@ -358,26 +186,26 @@ class SectionBodyContent extends React.PureComponent {
           {
             key: "change-password",
             label: t("PasswordChangeButton"),
-            onClick: this.onChangePasswordClick.bind(this, user.email)
+            onClick: this.toggleChangePasswordDialog.bind(this, user.email)
           },
           {
             key: "change-email",
             label: t("EmailChangeButton"),
-            onClick: this.onChangeEmailClick.bind(this, user.email)
+            onClick: this.toggleChangeEmailDialog.bind(this, user)
           },
           isSelf
-            ? viewer.isOwner 
-              ? {} 
+            ? viewer.isOwner
+              ? {}
               : {
                 key: "delete-profile",
                 label: t("DeleteSelfProfile"),
-                onClick: this.onDeleteSelfProfileClick.bind(this, user.email)
+                onClick: this.toggleDeleteSelfProfileDialog.bind(this, user.email)
               }
             : {
-                key: "disable",
-                label: t("DisableUserButton"),
-                onClick: this.onDisableClick.bind(this, user)
-              }
+              key: "disable",
+              label: t("DisableUserButton"),
+              onClick: this.onDisableClick.bind(this, user)
+            }
         ];
       case "disabled":
         return [
@@ -399,7 +227,7 @@ class SectionBodyContent extends React.PureComponent {
           {
             key: "delete-profile",
             label: t("DeleteSelfProfile"),
-            onClick: this.onDeleteProfileEverClick.bind(this, user)
+            onClick: this.toggleDeleteProfileEverDialog.bind(this, user)
           }
         ];
       case "pending":
@@ -415,21 +243,21 @@ class SectionBodyContent extends React.PureComponent {
             onClick: this.onInviteAgainClick.bind(this, user)
           },
           !isSelf &&
-            (user.status === EmployeeStatus.Active
-              ? {
-                  key: "disable",
-                  label: t("DisableUserButton"),
-                  onClick: this.onDisableClick.bind(this, user)
-                }
-              : {
-                  key: "enable",
-                  label: t("EnableUserButton"),
-                  onClick: this.onEnableClick.bind(this, user)
-                }),
+          (user.status === EmployeeStatus.Active
+            ? {
+              key: "disable",
+              label: t("DisableUserButton"),
+              onClick: this.onDisableClick.bind(this, user)
+            }
+            : {
+              key: "enable",
+              label: t("EnableUserButton"),
+              onClick: this.onEnableClick.bind(this, user)
+            }),
           isSelf && {
             key: "delete-profile",
             label: t("DeleteSelfProfile"),
-            onClick: this.onDeleteSelfProfileClick.bind(this, user.email)
+            onClick: this.toggleDeleteSelfProfileDialog.bind(this, user.email)
           }
         ];
       default:
@@ -452,13 +280,6 @@ class SectionBodyContent extends React.PureComponent {
     resetFilter().finally(() => onLoading(false));
   };
 
-  onDialogClose = () => {
-    this.setState({ 
-      newEmail: null,
-      dialog: { visible: false } 
-    });
-  };
-
   needForUpdate = (currentProps, nextProps) => {
     if (currentProps.checked !== nextProps.checked) {
       return true;
@@ -474,8 +295,8 @@ class SectionBodyContent extends React.PureComponent {
 
   render() {
     console.log("Home SectionBodyContent render()");
-    const { users, viewer, selection, history, settings, t } = this.props;
-    const { dialog } = this.state;
+    const { users, viewer, selection, history, settings, t, filter } = this.props;
+    const { dialogsVisible, user } = this.state;
 
     return users.length > 0 ? (
       <>
@@ -516,30 +337,57 @@ class SectionBodyContent extends React.PureComponent {
             );
           })}
         </RowContainer>
-        <ModalDialog
-          visible={dialog.visible}
-          headerContent={dialog.header}
-          bodyContent={dialog.body}
-          footerContent={dialog.buttons}
-          onClose={this.onDialogClose}
-        />
+
+        {dialogsVisible.changeEmail &&
+          <ChangeEmailDialog
+            visible={dialogsVisible.changeEmail}
+            onClose={this.toggleChangeEmailDialog}
+            user={user}
+          />
+        }
+        {dialogsVisible.changePassword &&
+          <ChangePasswordDialog
+            visible={dialogsVisible.changePassword}
+            onClose={this.toggleChangePasswordDialog}
+            email={user.email}
+          />
+        }
+
+        {dialogsVisible.deleteSelfProfile &&
+          <DeleteSelfProfileDialog
+            visible={dialogsVisible.deleteSelfProfile}
+            onClose={this.toggleDeleteSelfProfileDialog}
+            email={user.email}
+          />
+        }
+
+        {dialogsVisible.deleteProfileEver &&
+          <DeleteProfileEverDialog
+            visible={dialogsVisible.deleteProfileEver}
+            onClose={this.toggleDeleteProfileEverDialog}
+            user={user}
+            filter={filter}
+            settings={settings}
+            history={history}
+          />
+        }
       </>
     ) : (
-      <EmptyScreenContainer
-        imageSrc="images/empty_screen_filter.png"
-        imageAlt="Empty Screen Filter image"
-        headerText={t("NotFoundTitle")}
-        descriptionText={t("NotFoundDescription")}
-        buttons={
-          <>
-            <Icons.CrossIcon size="small" style={{ marginRight: "4px" }} />
-            <Link type="action" isHovered={true} onClick={this.onResetFilter}>
-              {t("ClearButton")}
-            </Link>
-          </>
-        }
-      />
-    );
+        <EmptyScreenContainer
+          imageSrc="images/empty_screen_filter.png"
+          imageAlt="Empty Screen Filter image"
+          headerText={t("NotFoundTitle")}
+          descriptionText={t("NotFoundDescription")}
+          buttons={
+            <>
+              <Icons.CrossIcon size="small" style={{ marginRight: "4px" }} />
+              <Link type="action" isHovered={true} onClick={this.onResetFilter}>
+                {t("ClearButton")}
+              </Link>
+            </>
+          }
+        />
+      );
   }
 }
 

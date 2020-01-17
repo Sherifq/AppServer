@@ -39,6 +39,7 @@
   "LblInvited": "Invited",
   "LblSetActive": "Set active",
   "LblSetDisabled": "Set disabled",
+  "MessageEmailActivationInstuctionsSentOnEmail": "The email activation instructions have been sent to the <1>{{email}}</1> email address",
 
   "CustomHeadOfDepartment": " {{headOfDepartment}}",
   "CustomTypeGuest": "{{typeGuest}}",
@@ -52,5 +53,13 @@
   "DirectionAscLabel":"A-Z",
   "DirectionDescLabel":"Z-A",
 
-  "DefaultSelectLabel": "Select"
+  "DefaultSelectLabel": "Select",
+
+  "FilterPlaceholder": "Search",
+
+  "CustomNewEmployee": "New {{typeUser, lowercase}}",
+  "CustomNewGuest": "New {{typeGuest, lowercase}}",
+  "CustomNewDepartment": "New {{department, lowercase}}",
+  "MakeInvitationLink": "Make invitation link",
+  "SendInvitationAgain": "Send invitation once"
 }

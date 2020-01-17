@@ -1,16 +1,15 @@
 import {
-  AdvancedSelector,
   Button,
   ComboBox,
   FieldContainer,
   Icons,
-  ModalDialog,
   SearchInput,
   SelectedItem,
   TextInput,
   toastr,
   utils
 } from "asc-web-components";
+import { PeopleSelector } from "asc-web-common";
 import {
   createGroup,
   resetGroup,
@@ -21,13 +20,11 @@ import {
   headOfDepartment,
   typeUser
 } from "../../../../../helpers/customNames";
-import { fetchGroups, fetchPeople, fetchSelectorUsers } from "../../../../../store/people/actions";
 
 import { GUID_EMPTY } from "../../../../../helpers/constants";
 import PropTypes from "prop-types";
 import React from "react";
 import { connect } from "react-redux";
-import isEqual from "lodash/isEqual";
 import styled from "styled-components";
 import { withRouter } from "react-router";
 import { withTranslation } from "react-i18next";
@@ -35,6 +32,7 @@ import { withTranslation } from "react-i18next";
 const MainContainer = styled.div`
   display: flex;
   flex-direction: column;
+  max-width: 1024px;
 
   .group-name_container {
     max-width: 320px;
@@ -48,26 +46,24 @@ const MainContainer = styled.div`
   .members_container {
     position: relative;
     max-width: 320px;
+    margin: 0;
   }
 
   .search_container {
-    margin-top: 16px;
+    margin-top: 32px;
+    display: none;
   }
 
   .selected-members_container {
-    margin-top: 16px;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-
-    .selected-item {
-      margin-right: 8px;
-      margin-bottom: 8px;
-    }
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-row-gap: 8px;
+    grid-column-gap: 16px;
   }
 
   .buttons_container {
-    margin-top: 60px;
+    margin-top: 40px;
 
     .cancel-button {
       margin-left: 8px;
@@ -75,8 +71,10 @@ const MainContainer = styled.div`
   }
 
   @media ${utils.device.tablet} {
-    .search_container {
-      max-width: 320px;
+    max-width: 320px;
+
+    .selected-members_container {
+      grid-template-columns: repeat(1, 1fr);
     }
   }
 `;
@@ -96,11 +94,10 @@ class SectionBodyContent extends React.Component {
       searchValue: "",
       error: null,
       inLoading: false,
-      isHeaderSelectorOpen: false,
+      isHeadSelectorOpen: false,
       isUsersSelectorOpen: false,
       users: users,
       groups: groups,
-      modalVisible: false,
       header: group
         ? {
             key: 0,
@@ -127,26 +124,13 @@ class SectionBodyContent extends React.Component {
             }
           : {
               key: GUID_EMPTY,
-              label: t("CustomAddEmployee", { typeUser })
+              label: t("CustomAddEmployee", { typeUser }),
+              default: true
             }
     };
 
     return newState;
   };
-
-  componentDidMount() {
-    const { users, fetchSelectorUsers } = this.props;
-    if (!users || !users.length) {
-      fetchSelectorUsers();
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    //const { users, group } = this.props;
-    if (!isEqual(this.props, prevProps)) {
-      this.setState(this.mapPropsToState());
-    }
-  }
 
   onGroupChange = e => {
     this.setState({
@@ -160,37 +144,25 @@ class SectionBodyContent extends React.Component {
     });
   };
 
-  onHeadSelectorSearch = value => {
-    /*setOptions(
-      options.filter(option => {
-        return option.label.indexOf(value) > -1;
-      })
-    );*/
-  };
+  onHeadSelectorSelect = options => {
+    if (!options || !options.length) return;
 
-  onHeadSelectorSelect = option => {
+    const option = options[0];
     this.setState({
       groupManager: {
         key: option.key,
         label: option.label
       },
-      isHeaderSelectorOpen: !this.state.isHeaderSelectorOpen
+      isHeadSelectorOpen: !this.state.isHeadSelectorOpen
     });
   };
 
   onHeadSelectorClick = () => {
     this.setState({
-      isHeaderSelectorOpen: !this.state.isHeaderSelectorOpen
+      isHeadSelectorOpen: !this.state.isHeadSelectorOpen
     });
   };
 
-  onUsersSelectorSearch = value => {
-    /*setOptions(
-      options.filter(option => {
-        return option.label.indexOf(value) > -1;
-      })
-    );*/
-  };
   onUsersSelectorSelect = selectedOptions => {
     //console.log("onSelect", selectedOptions);
     //this.onUsersSelectorClick();
@@ -211,13 +183,7 @@ class SectionBodyContent extends React.Component {
     });
   };
 
-  toggleModalVisible = () => {
-    this.setState({
-      modalVisible: !this.state.modalVisible
-    });
-  };
-
-  save = (group) => {
+  save = group => {
     const { createGroup, updateGroup } = this.props;
     return group.id
       ? updateGroup(group.id, group.name, group.managerKey, group.members)
@@ -238,8 +204,7 @@ class SectionBodyContent extends React.Component {
       members: groupMembers.map(u => u.key)
     };
 
-    if(group && group.id)
-      newGroup.id = group.id;
+    if (group && group.id) newGroup.id = group.id;
 
     this.save(newGroup)
       .then(group => {
@@ -264,126 +229,45 @@ class SectionBodyContent extends React.Component {
     });
   };
 
-  renderModal = () => {
-    const { groups, modalVisible } = this.state;
+  onCancelSelector = e => {
+    if (
+      (this.state.isHeadSelectorOpen &&
+        (e.target.id === "head-selector_button" ||
+          e.target.closest("#head-selector_button"))) ||
+      (this.state.isUsersSelectorOpen &&
+        (e.target.id === "users-selector_button" ||
+          e.target.closest("#users-selector_button")))
+    ) {
+      // Skip double set of isOpen property
+      return;
+    }
 
-    return (
-      <ModalDialog
-        zIndex={1001}
-        visible={modalVisible}
-        headerContent="New User"
-        bodyContent={
-          <div className="create_new_user_modal">
-            <FieldContainer
-              isVertical={true}
-              isRequired={true}
-              hasError={false}
-              labelText={"First name:"}
-            >
-              <TextInput
-                value={""}
-                hasError={false}
-                className="firstName-input"
-                scale={true}
-                autoComplete="off"
-                onChange={e => {
-                  //set(e.target.value);
-                }}
-              />
-            </FieldContainer>
-            <FieldContainer
-              isVertical={true}
-              isRequired={true}
-              hasError={false}
-              labelText={"Last name:"}
-            >
-              <TextInput
-                value={""}
-                hasError={false}
-                className="lastName-input"
-                scale={true}
-                autoComplete="off"
-                onChange={e => {
-                  //set(e.target.value);
-                }}
-              />
-            </FieldContainer>
-            <FieldContainer
-              isVertical={true}
-              isRequired={true}
-              hasError={false}
-              labelText={"E-mail:"}
-            >
-              <TextInput
-                value={""}
-                hasError={false}
-                className="email-input"
-                scale={true}
-                autoComplete="off"
-                onChange={e => {
-                  //set(e.target.value);
-                }}
-              />
-            </FieldContainer>
-            <FieldContainer
-              isVertical={true}
-              isRequired={true}
-              hasError={false}
-              labelText={"Group:"}
-            >
-              <ComboBox
-                options={groups}
-                className="group-input"
-                onSelect={option => console.log("Selected option", option)}
-                selectedOption={{
-                  key: 0,
-                  label: "Select"
-                }}
-                dropDownMaxHeight={200}
-                scaled={true}
-                scaledOptions={true}
-                size="content"
-              />
-            </FieldContainer>
-          </div>
-        }
-        footerContent={[
-          <Button
-            key="CreateBtn"
-            label="Create"
-            primary={true}
-            size="big"
-            onClick={e => {
-              console.log("CreateBtn click", e);
-              this.toggleModalVisible();
-            }}
-          />
-        ]}
-        onClose={this.toggleModalVisible}
-      />
-    );
+    this.setState({
+      isHeadSelectorOpen: false,
+      isUsersSelectorOpen: false
+    });
   };
+
+  onKeyPress = event => {
+    if (event.key === "Enter") {
+      this.onSave();
+    }
+  }
 
   render() {
     const { t } = this.props;
     const {
       groupName,
-      users,
-      groups,
       groupMembers,
-      isHeaderSelectorOpen: isHeadSelectorOpen,
+      isHeadSelectorOpen,
       isUsersSelectorOpen,
       inLoading,
       error,
       searchValue,
-      modalVisible,
       groupManager
     } = this.state;
     return (
       <MainContainer>
-        <div style={{ visibility: "hidden", width: 1, height: 1 }}>
-          <Icons.SearchIcon size="small" />
-        </div>
         <FieldContainer
           className="group-name_container"
           isRequired={true}
@@ -396,10 +280,12 @@ class SectionBodyContent extends React.Component {
             name="group-name"
             scale={true}
             isAutoFocussed={true}
+            isBold={true}
             tabIndex={1}
             value={groupName}
             onChange={this.onGroupChange}
             isDisabled={inLoading}
+            onKeyUp={this.onKeyPress}
           />
         </FieldContainer>
         <FieldContainer
@@ -410,36 +296,23 @@ class SectionBodyContent extends React.Component {
           labelText={t("CustomHeadOfDepartment", { headOfDepartment })}
         >
           <ComboBox
-            id="head-selector"
+            id="head-selector_button"
             tabIndex={2}
             options={[]}
-            isOpen={isHeadSelectorOpen}
+            opened={isHeadSelectorOpen}
             selectedOption={groupManager}
             scaled={true}
             isDisabled={inLoading}
             size="content"
-            opened={isHeadSelectorOpen}
             toggleAction={this.onHeadSelectorClick}
             displayType="toggle"
           >
             <Icons.CatalogGuestIcon size="medium" />
           </ComboBox>
-          <AdvancedSelector
-            displayType="dropdown"
+          <PeopleSelector
             isOpen={isHeadSelectorOpen}
-            size="full"
-            placeholder={"Search"}
-            onSearchChanged={this.onHeadSelectorSearch}
-            options={users}
-            groups={groups}
-            isMultiSelect={false}
-            buttonLabel={t("CustomAddEmployee", { typeUser })}
-            selectAllLabel={"Select all"}
             onSelect={this.onHeadSelectorSelect}
-            onCancel={this.onHeadSelectorClick}
-            allowCreation={false}
-            //onAddNewClick={toggleModalVisible}
-            allowAnyClickClose={true}
+            onCancel={this.onCancelSelector}
           />
         </FieldContainer>
         <FieldContainer
@@ -450,66 +323,57 @@ class SectionBodyContent extends React.Component {
           labelText={t("Members")}
         >
           <ComboBox
-            id="users-selector"
+            id="users-selector_button"
             tabIndex={3}
             options={[]}
-            isOpen={isUsersSelectorOpen}
+            opened={isUsersSelectorOpen}
             isDisabled={inLoading}
             selectedOption={{
               key: 0,
-              label: t("CustomAddEmployee", { typeUser })
+              label: t("AddMembers"),
+              default: true
             }}
             scaled={true}
             size="content"
-            opened={isUsersSelectorOpen}
             toggleAction={this.onUsersSelectorClick}
             displayType="toggle"
           >
             <Icons.CatalogGuestIcon size="medium" />
           </ComboBox>
-          <AdvancedSelector
-            displayType="dropdown"
+          <PeopleSelector
             isOpen={isUsersSelectorOpen}
-            size="full"
-            placeholder={"Search"}
-            onSearchChanged={this.onUsersSelectorSearch}
-            options={users}
-            groups={groups}
             isMultiSelect={true}
-            buttonLabel={t("CustomAddEmployee", { typeUser })}
-            selectAllLabel={"Select all"}
             onSelect={this.onUsersSelectorSelect}
-            onCancel={this.onUsersSelectorClick}
-            allowCreation={true}
-            onAddNewClick={this.toggleModalVisible}
-            allowAnyClickClose={!modalVisible}
+            onCancel={this.onCancelSelector}
           />
         </FieldContainer>
         {groupMembers && groupMembers.length > 0 && (
-          <div className="search_container">
-            <SearchInput
-              id="member-search"
-              isDisabled={inLoading}
-              scale={true}
-              placeholder="Search"
-              value={searchValue}
-              onChange={this.onSearchChange}
-            />
-          </div>
+          <>
+            <div className="search_container">
+              <SearchInput
+                id="member-search"
+                isDisabled={inLoading}
+                scale={true}
+                placeholder={t("SearchAddedMembers")}
+                value={searchValue}
+                onChange={this.onSearchChange}
+              />
+            </div>
+            <div className="selected-members_container">
+              {groupMembers.map(member => (
+                <SelectedItem
+                  key={member.key}
+                  text={member.label}
+                  onClose={this.onSelectedItemClose.bind(this, member)}
+                  isInline={false}
+                  className="selected-item"
+                  isDisabled={inLoading}
+                />
+              ))}
+            </div>
+          </>
         )}
-        <div className="selected-members_container">
-          {groupMembers.map(member => (
-            <SelectedItem
-              key={member.key}
-              text={member.label}
-              onClose={this.onSelectedItemClose.bind(this, member)}
-              isInline={true}
-              className="selected-item"
-              isDisabled={inLoading}
-            />
-          ))}
-        </div>
-        <div>{error && <strong>{error}</strong>}</div>
+        {error && <div><strong>{error}</strong></div>}
         <div className="buttons_container">
           <Button
             label={t("SaveButton")}
@@ -529,7 +393,6 @@ class SectionBodyContent extends React.Component {
             tabIndex={5}
           />
         </div>
-        {this.renderModal()}
       </MainContainer>
     );
   }
@@ -572,11 +435,11 @@ function mapStateToProps(state) {
     settings: state.auth.settings,
     group: state.group.targetGroup,
     groups: convertGroups(state.people.groups),
-    users: convertUsers(state.people.selector.users), //TODO: replace to api requests with search
+    users: convertUsers(state.people.selector.users) //TODO: replace to api requests with search
   };
 }
 
 export default connect(
   mapStateToProps,
-  { resetGroup, createGroup, updateGroup, fetchSelectorUsers, fetchPeople, fetchGroups }
+  { resetGroup, createGroup, updateGroup }
 )(withRouter(withTranslation()(SectionBodyContent)));

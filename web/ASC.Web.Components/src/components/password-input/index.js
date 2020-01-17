@@ -8,8 +8,6 @@ import InputBlock from '../input-block'
 import { Icons } from '../icons'
 import Link from '../link'
 import Text from '../text'
-//import DropDown from '../drop-down'
-
 import Tooltip from "../tooltip";
 
 // eslint-disable-next-line no-unused-vars
@@ -23,9 +21,9 @@ SimpleInput.propTypes = {
 const StyledInput = styled(SimpleInput)`
   display: flex;
   align-items: center;
-  line-height: 45px;
+  line-height: 32px;
   flex-direction: row;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 
   @media ${tablet} {
     flex-wrap: wrap;
@@ -34,16 +32,40 @@ const StyledInput = styled(SimpleInput)`
 
 const PasswordProgress = styled.div`
   ${props => props.inputWidth ? `width: ${props.inputWidth};` : `flex: auto;`}
+
+  .input-relative {
+    position: relative;
+
+    svg {
+      overflow: hidden;
+      vertical-align: middle;
+    }
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 `;
 
 const NewPasswordButton = styled.div`
-  margin-left: 16px;
-  margin-top: 4px;
+  margin: 0 16px;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+
+  svg {
+    overflow: hidden;
+    vertical-align: middle;
+    margin-bottom: 4px;
+  }
+
+  :hover {
+    cursor: pointer;
+  }
 `;
 
 const CopyLink = styled.div`
   margin-top: -6px;
-  margin-left: 16px;
 
   @media ${tablet} {
     width: 100%;
@@ -99,20 +121,12 @@ class PasswordInput extends React.Component {
     }
   }
 
-  /*onFocus = () => {
-    this.setState({
-      displayTooltip: true
-    });
-  }*/
-
   onBlur = () => {
-    /*this.setState({
-      displayTooltip: false
-    });*/
     this.refTooltip.current.hideTooltip();
   }
 
   changeInputType = () => {
+    this.refTooltip.current.hideTooltip();
     const newType = this.state.type === 'text' ? 'password' : 'text';
 
     this.setState({
@@ -316,11 +330,10 @@ class PasswordInput extends React.Component {
       validCapital,
       validSpecial,
       disableCopyAction
-      //displayTooltip
     } = this.state;
 
     const iconsColor = isDisabled ? '#D0D5DA' : '#A3A9AE';
-    const iconName = type === 'password' ? 'EyeIcon' : 'EyeOffIcon';
+    const iconName = type === 'password' ? 'EyeOffIcon' : 'EyeIcon' ;
 
     const tooltipContent = (
       <StyledTooltipContainer forwardedAs='div' title={tooltipPasswordTitle}>
@@ -356,6 +369,7 @@ class PasswordInput extends React.Component {
           ref={this.ref}
         >
           <InputBlock
+            className="input-relative"
             id={id}
             name={inputName}
             hasError={hasError}
@@ -367,9 +381,8 @@ class PasswordInput extends React.Component {
             scale={scale}
             size={size}
             type={type}
-            iconColor={iconsColor}
+            iconColor={`${iconsColor} !important`}
             isIconFill={true}
-            //onFocus={this.onFocus}
             onBlur={this.onBlur}
             hasWarning={hasWarning}
             placeholder={placeholder}
@@ -476,10 +489,3 @@ PasswordInput.defaultProps = {
 }
 
 export default PasswordInput;
-/*
-            {displayTooltip &&
-              <DropDown directionY='top' manualY='150%' isOpen={true}>
-                {tooltipContent}
-              </DropDown>
-            }
-*/

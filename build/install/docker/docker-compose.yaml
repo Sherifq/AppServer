@@ -93,12 +93,20 @@ services:
     container_name: api
     hostname: api
     restart: always
+    depends_on:
+    - mysql
+    - kafka
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
     expose:
     - "5000"
     networks:
     - onlyoffice
     volumes:
-    - ../../../config/:/app/onlyoffice/config
     - app_data:/app/onlyoffice/data/
     - app_log:/var/log/supervisor/
 
@@ -110,13 +118,21 @@ services:
     container_name: storybook
     hostname: storybook
     restart: always
+    depends_on:
+    - mysql
+    - kafka
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
     expose:
     - "8081"
     - "8082"
     networks:
     - onlyoffice
     volumes:
-    - ../../../config/:/app/onlyoffice/config
     - app_data:/app/onlyoffice/data/
     - app_log:/var/log/supervisor/
 
@@ -128,12 +144,20 @@ services:
     container_name: studio.notify
     hostname: studio_notify
     restart: always
+    depends_on:
+    - mysql
+    - kafka
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
     expose:
     - "5006"
     networks:
     - onlyoffice
     volumes:
-    - ../../../config/:/app/onlyoffice/config
     - app_data:/app/onlyoffice/data/
     - app_log:/var/log/supervisor/
 
@@ -145,12 +169,20 @@ services:
     container_name: client
     hostname: client
     restart: always
+    depends_on:
+    - mysql
+    - kafka
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
     expose:
     - "5001"
     networks:
     - onlyoffice
     volumes:
-    - ../../../config/:/app/onlyoffice/config
     - app_data:/app/onlyoffice/data/
     - app_log:/var/log/supervisor/
 
@@ -162,12 +194,20 @@ services:
     container_name: studio
     hostname: studio
     restart: always
+    depends_on:
+    - mysql
+    - kafka
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
     expose:
     - "5003"
     networks:
     - onlyoffice
     volumes:
-    - ../../../config/:/app/onlyoffice/config
     - app_data:/app/onlyoffice/data/
     - app_log:/var/log/supervisor/
 
@@ -179,29 +219,45 @@ services:
     container_name: notify
     hostname: notify
     restart: always
+    depends_on:
+    - mysql
+    - kafka
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
     expose:
     - "5005"
     networks:
     - onlyoffice
     volumes:
-    - ../../../config/:/app/onlyoffice/config
     - app_data:/app/onlyoffice/data/
     - app_log:/var/log/supervisor/
 
   people.server:
     build:
       context: ./../../../
-      dockerfile: build/install/docker/people.server/Dockerfile.full
+      dockerfile: build/install/docker/people.server/Dockerfile
     image: people.server
     container_name: people.server
     hostname: people_server
     restart: always
+    depends_on:
+    - mysql
+    - kafka
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
     expose:
     - "5004"
     networks:
     - onlyoffice
     volumes:
-    - ../../../config/:/app/onlyoffice/config
     - app_data:/app/onlyoffice/data/
     - app_log:/var/log/supervisor/
 
@@ -213,12 +269,20 @@ services:
     container_name: people.client
     hostname: people_client
     restart: always
+    depends_on:
+    - mysql
+    - kafka
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      KAFKA_HOST: kafka
     expose:
     - "5002"
     networks:
     - onlyoffice
     volumes:
-    - ../../../config/:/app/onlyoffice/config
     - app_data:/app/onlyoffice/data/
     - app_log:/var/log/supervisor/
 
@@ -237,6 +301,8 @@ services:
     networks:
     - onlyoffice
     depends_on:
+    - mysql
+    - kafka
     - api
     - client
     - notify
@@ -246,14 +312,6 @@ services:
     - studio
     - studio.notify
     environment:
-      MYSQL_HOST: mysql
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      KAFKA_HOST: kafka
-      ZOO_HOST: zookeeper
-      ES_HOST: elasticsearch
       API_HOSTS: api
       CLIENT_HOSTS: client
       NOTIFY_HOSTS: notify
@@ -263,8 +321,6 @@ services:
       STUDIO_HOSTS: studio
       STUDIONOTIFY_HOSTS: studio.notify
     volumes:
-        # so-so solution
-    - ../../../config/:/app/onlyoffice/config
     - nginx_log:/var/log/nginx
 
 
@@ -307,7 +363,6 @@ volumes:
   zoo_data:
   zoo_log:
   kafka_data:
-  app_settings:
   app_data:
   app_log:
 

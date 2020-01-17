@@ -36,6 +36,7 @@ COPY . /app/onlyoffice/src/
 RUN cd /app/onlyoffice/src/ && \
     cp build/install/docker/studio.notify/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
     mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
+    cp build/install/docker/studio.notify/docker-entrypoint.sh / && \
     cd common/services/ASC.Studio.Notify && \
     dotnet -d publish -o /var/www/services/studio.notify && \
     dotnet nuget locals all --clear && \
@@ -43,4 +44,4 @@ RUN cd /app/onlyoffice/src/ && \
 
 EXPOSE 5006
 
-ENTRYPOINT ["/usr/bin/supervisord", "--"]
+ENTRYPOINT ["bash", "-c", "/docker-entrypoint.sh"]

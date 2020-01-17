@@ -49,6 +49,8 @@ RUN apt-get update -y && \
 COPY . /app/onlyoffice/src/
 
 RUN cd /app/onlyoffice/src/ && \
+    mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
+    cp build/install/docker/people.client/docker-entrypoint.sh / && \
     yarn install --cwd web/ASC.Web.Components --frozen-lockfile > build/ASC.Web.Components.log && \
     npm run build --prefix web/ASC.Web.Components && \
     yarn pack --cwd web/ASC.Web.Components && \
@@ -75,4 +77,4 @@ RUN cd /app/onlyoffice/src/ && \
 
 EXPOSE 5002
 
-ENTRYPOINT ["/usr/bin/supervisord", "--"]
+ENTRYPOINT ["bash", "-c", "/docker-entrypoint.sh"]

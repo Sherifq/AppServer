@@ -56,6 +56,7 @@ RUN apt-get update -y && \
     rm -f /etc/nginx/conf.d/* && \
     cp -rf build/install/docker/storybook/onlyoffice-story.conf /etc/nginx/conf.d/ && \
     mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
+    cp build/install/docker/storybook/docker-entrypoint.sh / && \
     dotnet nuget locals all --clear && \
     yarn cache clean && \
     rm -rf /app/onlyoffice/src && \
@@ -63,4 +64,4 @@ RUN apt-get update -y && \
 
 EXPOSE 8081 8082
 
-ENTRYPOINT ["/usr/bin/supervisord", "--"]
+ENTRYPOINT ["bash", "-c", "/docker-entrypoint.sh"]

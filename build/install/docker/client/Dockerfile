@@ -46,6 +46,8 @@ RUN apt-get update -y && \
                         supervisor \
                         mysql-client && \
     cd /app/onlyoffice/src/ && \
+    mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
+    cp build/install/docker/client/docker-entrypoint.sh / && \
     cp build/install/docker/client/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
     rm -f /etc/nginx/conf.d/* && \
     cp -rf build/install/docker/client/onlyoffice-studio.conf /etc/nginx/conf.d/ && \
@@ -75,5 +77,5 @@ RUN apt-get update -y && \
 
 EXPOSE 5001
 
-ENTRYPOINT ["/usr/bin/supervisord", "--"]
+ENTRYPOINT ["bash", "-c", "/docker-entrypoint.sh"]
 

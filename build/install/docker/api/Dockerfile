@@ -35,6 +35,7 @@ COPY . /app/onlyoffice/src/
 
 RUN cd /app/onlyoffice/src/ && \
     mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
+    cp build/install/docker/api/docker-entrypoint.sh / && \
     cp build/install/docker/api/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
     cd web/ASC.Web.Api && \
     dotnet -d publish -o /var/www/studio/api && \
@@ -43,4 +44,4 @@ RUN cd /app/onlyoffice/src/ && \
 
 EXPOSE 5000
 
-ENTRYPOINT ["/usr/bin/supervisord", "--"]
+ENTRYPOINT ["bash", "-c", "/docker-entrypoint.sh"]

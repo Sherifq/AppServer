@@ -19,27 +19,62 @@ RUN apt-get update -y && \
     addgroup --system --gid 107 onlyoffice && \
     adduser -uid 104 --quiet --home /var/www/onlyoffice --system --gid 107 onlyoffice && \
     locale-gen en_US.UTF-8 && \
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && \
+    echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official.list && \
+    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
     wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
     dpkg -i packages-microsoft-prod.deb && \
     apt-get update -y && \
+    cd ~ && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     apt-get install -yq libgdiplus \
+                        nodejs \
+                        htop \
                         vim \
                         jq \
+                        yarn \
                         dotnet-sdk-3.1 \
                         supervisor \
-                        mysql-client && \
-    rm -rf /var/lib/apt/lists/
+                        mysql-client
 
 COPY . /app/onlyoffice/src/
+
+RUN cd /app/onlyoffice/src/ && \
+    yarn install --cwd web/ASC.Web.Components --frozen-lockfile > build/ASC.Web.Components.log && \
+    npm run build --prefix web/ASC.Web.Components && \
+    yarn pack --cwd web/ASC.Web.Components && \
+    component=$(ls web/ASC.Web.Components/asc-web-components-v1.*.tgz) && \
+	yarn remove asc-web-components --cwd web/ASC.Web.Common --peer && \
+    yarn add file:../../$component --cwd web/ASC.Web.Common --cache-folder ../../yarn --peer && \
+    yarn install --cwd web/ASC.Web.Common --frozen-lockfile > build/ASC.Web.Common.log && \
+    npm run build --prefix web/ASC.Web.Common && \
+    yarn pack --cwd web/ASC.Web.Common && \
+    yarn cache clean
+
+RUN cd /app/onlyoffice/src/ && \
+    mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
+    cd products/ASC.People/Server && \
+    dotnet -d publish -o /var/www/products/ASC.People/server && \
+    cd ../../../ && \
+    cd web/ASC.Web.Api && \
+    dotnet -d publish -o /var/www/studio/api && \
+    cd ../../ && \
+    cd web/ASC.Web.Studio && \
+    dotnet -d publish -o /var/www/studio/server && \
+    cd ../../ && \
+    cd common/services/ASC.Notify && \
+    dotnet -d publish -o /var/www/services/notify && \
+    cd ../../../ && \
+    cd common/services/ASC.Studio.Notify && \
+    dotnet -d publish -o /var/www/services/studio.notify && \
+    dotnet nuget locals all --clear
 
 RUN cd /app/onlyoffice/src/ && \
     mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
     cp build/install/docker/api/docker-entrypoint.sh / && \
     cp build/install/docker/api/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
-    cd web/ASC.Web.Api && \
-    dotnet -d publish -o /var/www/studio/api && \
-    dotnet nuget locals all --clear && \
     rm -rf /app/onlyoffice/src
 
 EXPOSE 5000

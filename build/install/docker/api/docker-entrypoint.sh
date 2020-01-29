@@ -10,3 +10,5 @@ tmp=$(mktemp)
 jq ".kafka.BootstrapServers=\"${KAFKAIP}\"" /app/onlyoffice/config/kafka.test.json > "$tmp" && mv "$tmp" /app/onlyoffice/config/kafka.test.json
 
 /usr/bin/supervisord --
+#cd /var/www/studio/api/
+#dotnet ASC.Web.Api.dll --urls=http://0.0.0.0:5000 --pathToConf=/app/onlyoffice/config/ --$STORAGE_ROOT=/app/onlyoffice/data/ --ENVIRONMENT=test

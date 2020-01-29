@@ -1,10 +1,13 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.04 AS builder
 
 ARG RELEASE_DATE="2016-06-21"
 ARG RELEASE_DATE_SIGN=""
 ARG VERSION="8.9.0.190"
 ARG SOURCE_REPO_URL="deb http://static.teamlab.com.s3.amazonaws.com/repo/debian squeeze main"
 ARG DEBIAN_FRONTEND=noninteractive
+
+ARG APPS_UID="107"
+ARG APPS_GID="104"
 
 LABEL onlyoffice.community.release-date="${RELEASE_DATE}" \
       onlyoffice.community.version="${VERSION}" \
@@ -14,47 +17,28 @@ ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
 
+#RUN set -x ; \
+#    addgroup -g ${APPS_GID} -S onlyoffice ; \
+#    adduser -u ${APPS_UID} -D -S -G onlyoffice onlyoffice && exit 0 ; exit 1
+
+COPY . /app/onlyoffice/src/
+
 RUN apt-get update -y && \
     apt-get install gnupg2 apt-transport-https ca-certificates sudo locales software-properties-common wget curl cron rsyslog -yq && \
-    addgroup --system --gid 107 onlyoffice && \
-    adduser -uid 104 --quiet --home /var/www/onlyoffice --system --gid 107 onlyoffice && \
     locale-gen en_US.UTF-8 && \
-    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && \
-    echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official.list && \
-    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
-    wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
-    dpkg -i packages-microsoft-prod.deb && \
+    wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb &&  dpkg -i packages-microsoft-prod.deb && \
     apt-get update -y && \
     cd ~ && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     apt-get install -yq libgdiplus \
-                        nodejs \
                         htop \
                         vim \
                         jq \
-                        yarn \
                         dotnet-sdk-3.1 \
                         supervisor \
-                        mysql-client
-
-COPY . /app/onlyoffice/src/
-
-RUN cd /app/onlyoffice/src/ && \
-    yarn install --cwd web/ASC.Web.Components --frozen-lockfile > build/ASC.Web.Components.log && \
-    npm run build --prefix web/ASC.Web.Components && \
-    yarn pack --cwd web/ASC.Web.Components && \
-    component=$(ls web/ASC.Web.Components/asc-web-components-v1.*.tgz) && \
-	yarn remove asc-web-components --cwd web/ASC.Web.Common --peer && \
-    yarn add file:../../$component --cwd web/ASC.Web.Common --cache-folder ../../yarn --peer && \
-    yarn install --cwd web/ASC.Web.Common --frozen-lockfile > build/ASC.Web.Common.log && \
-    npm run build --prefix web/ASC.Web.Common && \
-    yarn pack --cwd web/ASC.Web.Common && \
-    yarn cache clean
-
-RUN cd /app/onlyoffice/src/ && \
-    mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
+                        mysql-client && \
+    # build dotnet applications \
+    cd /app/onlyoffice/src/ && \
     cd products/ASC.People/Server && \
     dotnet -d publish -o /var/www/products/ASC.People/server && \
     cd ../../../ && \
@@ -69,13 +53,28 @@ RUN cd /app/onlyoffice/src/ && \
     cd ../../../ && \
     cd common/services/ASC.Studio.Notify && \
     dotnet -d publish -o /var/www/services/studio.notify && \
-    dotnet nuget locals all --clear
-
-RUN cd /app/onlyoffice/src/ && \
+    dotnet nuget locals all --clear && \
+    # prepare config file and clear cache \
+    cd /app/onlyoffice/src/ && \
     mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
     cp build/install/docker/api/docker-entrypoint.sh / && \
     cp build/install/docker/api/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
+    rm -rf /var/lib/apt/lists/* \
     rm -rf /app/onlyoffice/src
+
+
+#FROM mcr.microsoft.com/dotnet/core/sdk AS runtime
+#
+#WORKDIR /var/www/
+#
+#RUN apt-get update -y &&\
+#    apt-get install -y supervisor jq && \
+#    rm -rf /var/lib/apt/lists/*
+#
+#COPY --from=builder /var/www/ .
+#COPY --from=builder /app/onlyoffice/config/ /app/onlyoffice/config/
+#COPY --from=builder /etc/supervisor/conf.d/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+#COPY build/install/docker/api/docker-entrypoint.sh /
 
 EXPOSE 5000
 

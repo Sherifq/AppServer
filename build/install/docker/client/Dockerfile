@@ -6,8 +6,8 @@ ARG VERSION="8.9.0.190"
 ARG SOURCE_REPO_URL="deb http://static.teamlab.com.s3.amazonaws.com/repo/debian squeeze main"
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG APPS_UID="107"
-ARG APPS_GID="104"
+ARG APPS_UID="9000"
+ARG APPS_GID="9000"
 
 LABEL onlyoffice.community.release-date="${RELEASE_DATE}" \
       onlyoffice.community.version="${VERSION}" \
@@ -17,9 +17,9 @@ ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
 
-#RUN set -x ; \
-#    addgroup -g ${APPS_GID} -S onlyoffice ; \
-#    adduser -u ${APPS_UID} -D -S -G onlyoffice onlyoffice
+#RUN  groupadd -g ${APPS_UID} -r onlyoffice && useradd -u ${APPS_UID} -r -g onlyoffice -m -s /sbin/nologin onlyoffice
+
+#USER onlyoffice
 
 COPY . /app/onlyoffice/src/
 
@@ -29,19 +29,12 @@ RUN apt-get update -y && \
     curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
     curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
-    wget http://nginx.org/keys/nginx_signing.key && \
-    apt-key add nginx_signing.key && \
-    echo "deb http://nginx.org/packages/mainline/ubuntu/ bionic nginx" >> /etc/apt/sources.list.d/nginx.list && \
-    echo "deb-src http://nginx.org/packages/mainline/ubuntu/ bionic nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get update -y && \
     cd ~ && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     apt-get install -yq libgdiplus \
                         nodejs \
-                        nginx \
-                        jq \
-                        yarn \
-                        supervisor && \
+                        yarn && \
     cd /app/onlyoffice/src/ && \
     yarn install --cwd web/ASC.Web.Components --frozen-lockfile > build/ASC.Web.Components.log && \
     npm run build --prefix web/ASC.Web.Components && \
@@ -63,15 +56,17 @@ RUN apt-get update -y && \
     mkdir -p /var/www/studio/client && \
     cp -rf web/ASC.Web.Client/build/* /var/www/studio/client && \
     yarn cache clean && \
-    rm -f /etc/nginx/conf.d/* && \
-    cp -rf build/install/docker/client/onlyoffice-studio.conf /etc/nginx/conf.d/ && \
-    mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
-    cp build/install/docker/client/docker-entrypoint.sh / && \
-    cp build/install/docker/client/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
     rm -rf /app/onlyoffice/src && \
     rm -rf /var/lib/apt/lists/
 
+FROM nginx:stable-alpine AS runtime
+
+COPY --from=builder /var/www/studio/client /var/www/studio/client
+COPY build/install/docker/client/onlyoffice-studio.conf /etc/nginx/conf.d/
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+
 EXPOSE 5001
 
-ENTRYPOINT ["bash", "-c", "/docker-entrypoint.sh"]
+CMD ["/usr/sbin/nginx"]
+#ENTRYPOINT ["bash", "-c", "/docker-entrypoint.sh"]
 

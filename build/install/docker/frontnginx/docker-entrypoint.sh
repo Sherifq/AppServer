@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 MYSQLIP=`getent hosts mysql | awk '{ print $1 }'`
 KAFKAIP=`getent hosts kafka | awk '{ print $1 }'`
@@ -23,4 +23,5 @@ sed -i "s/server\ people.client/server\ $PEOPLECLIENT_HOSTS_IP/" /etc/nginx/incl
 sed -i "s/server\ people.server/server\ $PEOPLESERVER_HOSTS_IP/" /etc/nginx/includes/upstream.conf
 sed -i "s/server\ studio/server\ $STUDIO_HOSTS_IP/" /etc/nginx/includes/upstream.conf
 
-/usr/bin/supervisord --
+#/usr/bin/supervisord --
+/usr/sbin/nginx

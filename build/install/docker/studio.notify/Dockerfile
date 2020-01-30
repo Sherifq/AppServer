@@ -10,14 +10,21 @@ LABEL onlyoffice.community.release-date="${RELEASE_DATE}" \
       onlyoffice.community.version="${VERSION}" \
       maintainer="Ascensio System SIA <support@onlyoffice.com>"
 
+ARG APPS_UID="9000"
+ARG APPS_GID="9000"
+
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
 
+#RUN  groupadd -g ${APPS_UID} -r onlyoffice && useradd -u ${APPS_UID} -r -g onlyoffice -m -s /sbin/nologin onlyoffice
+
+#USER onlyoffice
+
+COPY . /app/onlyoffice/src/
+
 RUN apt-get update -y && \
     apt-get install gnupg2 apt-transport-https ca-certificates sudo locales software-properties-common wget curl cron rsyslog -yq && \
-    addgroup --system --gid 107 onlyoffice && \
-    adduser -uid 104 --quiet --home /var/www/onlyoffice --system --gid 107 onlyoffice && \
     locale-gen en_US.UTF-8 && \
     wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
     dpkg -i packages-microsoft-prod.deb && \
@@ -29,18 +36,16 @@ RUN apt-get update -y && \
                         dotnet-sdk-3.1 \
                         supervisor \
                         mysql-client && \
-    rm -rf /var/lib/apt/lists/
-
-COPY . /app/onlyoffice/src/
-
-RUN cd /app/onlyoffice/src/ && \
-    cp build/install/docker/studio.notify/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
-    mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
-    cp build/install/docker/studio.notify/docker-entrypoint.sh / && \
+    cd /app/onlyoffice/src/ && \
     cd common/services/ASC.Studio.Notify && \
     dotnet -d publish -o /var/www/services/studio.notify && \
     dotnet nuget locals all --clear && \
-    rm -rf /app/onlyoffice/src
+    cd /app/onlyoffice/src/ && \
+    cp build/install/docker/studio.notify/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
+    mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
+    cp build/install/docker/studio.notify/docker-entrypoint.sh / && \
+    rm -rf /app/onlyoffice/src && \
+    rm -rf /var/lib/apt/lists/
 
 EXPOSE 5006
 

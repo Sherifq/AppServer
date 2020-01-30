@@ -6,8 +6,8 @@ ARG VERSION="8.9.0.190"
 ARG SOURCE_REPO_URL="deb http://static.teamlab.com.s3.amazonaws.com/repo/debian squeeze main"
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG APPS_UID="107"
-ARG APPS_GID="104"
+ARG APPS_UID="9000"
+ARG APPS_GID="9000"
 
 LABEL onlyoffice.community.release-date="${RELEASE_DATE}" \
       onlyoffice.community.version="${VERSION}" \
@@ -17,9 +17,9 @@ ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
 
-#RUN set -x ; \
-#    addgroup -g ${APPS_GID} -S onlyoffice ; \
-#    adduser -u ${APPS_UID} -D -S -G onlyoffice onlyoffice && exit 0 ; exit 1
+#RUN  groupadd -g ${APPS_UID} -r onlyoffice && useradd -u ${APPS_UID} -r -g onlyoffice -m -s /sbin/nologin onlyoffice
+
+#USER onlyoffice
 
 COPY . /app/onlyoffice/src/
 
@@ -31,7 +31,6 @@ RUN apt-get update -y && \
     cd ~ && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     apt-get install -yq libgdiplus \
-                        htop \
                         vim \
                         jq \
                         dotnet-sdk-3.1 \
@@ -44,21 +43,12 @@ RUN apt-get update -y && \
     cd ../../../ && \
     cd web/ASC.Web.Api && \
     dotnet -d publish -o /var/www/studio/api && \
-    cd ../../ && \
-    cd web/ASC.Web.Studio && \
-    dotnet -d publish -o /var/www/studio/server && \
-    cd ../../ && \
-    cd common/services/ASC.Notify && \
-    dotnet -d publish -o /var/www/services/notify && \
-    cd ../../../ && \
-    cd common/services/ASC.Studio.Notify && \
-    dotnet -d publish -o /var/www/services/studio.notify && \
-    dotnet nuget locals all --clear && \
     # prepare config file and clear cache \
     cd /app/onlyoffice/src/ && \
     mkdir -p /app/onlyoffice/config/ && cp -rf config/* /app/onlyoffice/config/ && \
     cp build/install/docker/api/docker-entrypoint.sh / && \
     cp build/install/docker/api/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
+    dotnet nuget locals all --clear && \
     rm -rf /var/lib/apt/lists/* \
     rm -rf /app/onlyoffice/src
 
